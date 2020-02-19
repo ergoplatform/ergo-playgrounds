@@ -1,5 +1,6 @@
 package org.ergoplatform.playgrounds
 
+import org.ergoplatform.playgrounds.models.BlockchainSimulation
 import special.collection.Coll
 
 trait Generators {

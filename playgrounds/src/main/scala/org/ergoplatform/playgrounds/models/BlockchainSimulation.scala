@@ -1,7 +1,6 @@
-package org.ergoplatform.playgrounds
+package org.ergoplatform.playgrounds.models
 
 import org.ergoplatform.playground.SigmaProp
-import org.ergoplatform.playgrounds.models.{InputBox, SignedTransaction, TokenInfo}
 
 trait BlockchainSimulation {
 
