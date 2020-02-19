@@ -7,9 +7,7 @@ import sigmastate.Values.SValue
 import scala.language.implicitConversions
 
 object playground
-  extends playgrounds.EmptyContext
-  with playgrounds.EmptySigmaContract
-  with playgrounds.Generators
+  extends playgrounds.Generators
   with playgrounds.Wallet {
 
   type Coll[A]   = special.collection.Coll[A]

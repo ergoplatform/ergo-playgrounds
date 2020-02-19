@@ -27,7 +27,7 @@ dynverSeparator in ThisBuild := "-"
 lazy val allConfigDependency = "compile->compile;test->test"
 
 lazy val dependencies = Seq(
-  "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-18-153954d1-20200216-1017-SNAPSHOT",
+  "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-23-3f057c6b-SNAPSHOT",
 )
 
 lazy val testingDependencies = Seq(
