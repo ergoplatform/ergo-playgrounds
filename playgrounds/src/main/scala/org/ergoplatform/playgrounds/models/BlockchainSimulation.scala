@@ -1,21 +1,32 @@
 package org.ergoplatform.playgrounds.models
 
-import org.ergoplatform.playground.SigmaProp
+import special.sigma.SigmaProp
+
+case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: TokenInfo)
 
 trait BlockchainSimulation {
 
-  def send(tx: SignedTransaction): Unit = {}
+  def send(tx: SignedTransaction): Unit
 
-  def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long): List[InputBox] = ???
+  def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long): List[InputBox]
 
   def makeUnspentBoxesFor(
     pk: SigmaProp,
     toSpend: Long,
     tokenToSpend: TokenInfo
-  ): List[InputBox] = ???
+  ): List[InputBox]
 
-  case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: TokenInfo)
+  def getStatsFor(pk: SigmaProp): PKBlockchainStats
 
-  def getStatsFor(pk: SigmaProp): PKBlockchainStats = ???
+}
 
+case class NaiveBlockchainSimulation() extends BlockchainSimulation {
+
+  override def send(tx: SignedTransaction): Unit = {}
+
+  override def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long): List[InputBox] = List()
+
+  override def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long, tokenToSpend: TokenInfo): List[InputBox] = List()
+
+  override def getStatsFor(pk: SigmaProp): PKBlockchainStats = ???
 }

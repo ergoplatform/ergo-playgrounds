@@ -1,16 +1,15 @@
 package org.ergoplatform
 
-import org.ergoplatform.playgrounds._
+import org.ergoplatform.playgrounds.dsl.{BoxDsl, GeneratorsDsl, TransactionDsl, TypesDsl}
 import sigmastate.Values.SValue
 
 import scala.language.implicitConversions
 
 object playground
-  extends Generators
-  with Types
-  with Wallet
-  with Box
-  with Transaction {
+  extends GeneratorsDsl
+  with TypesDsl
+  with BoxDsl
+  with TransactionDsl {
 
   val MinTxFee: Long = 1000 * 1000
   val MinErg: Long   = 1000 * 1000

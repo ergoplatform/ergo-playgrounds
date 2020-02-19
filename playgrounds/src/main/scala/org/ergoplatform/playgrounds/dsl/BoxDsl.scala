@@ -1,4 +1,4 @@
-package org.ergoplatform.playgrounds
+package org.ergoplatform.playgrounds.dsl
 
 import org.ergoplatform.ErgoBox
 import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
@@ -8,7 +8,7 @@ import sigmastate.Values.SValue
 
 import scala.language.implicitConversions
 
-trait Box {
+trait BoxDsl {
 
   implicit def outBoxToInputBox(in: OutBox): InputBox = ???
 

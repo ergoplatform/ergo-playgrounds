@@ -1,8 +1,8 @@
-package org.ergoplatform.playgrounds
+package org.ergoplatform.playgrounds.dsl
 
-import org.ergoplatform.playgrounds.models.{InputBox, OutBox, OutBoxCandidate, UnsignedTransaction}
+import org.ergoplatform.playgrounds.models.{InputBox, OutBoxCandidate, UnsignedTransaction}
 
-trait Transaction {
+trait TransactionDsl {
 
   // TODO check input and output sums checks out and miner's fee (check the change is 0)
   def Transaction(
