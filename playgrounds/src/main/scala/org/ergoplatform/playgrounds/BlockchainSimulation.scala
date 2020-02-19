@@ -1,10 +1,11 @@
 package org.ergoplatform.playgrounds
 
-import org.ergoplatform.playground.{SigmaProp, SignedTransaction, TokenInfo}
+import org.ergoplatform.playground.SigmaProp
+import org.ergoplatform.playgrounds.models.{InputBox, SignedTransaction, TokenInfo}
 
 trait BlockchainSimulation {
 
-  def send(tx: SignedTransaction): Unit = ???
+  def send(tx: SignedTransaction): Unit = {}
 
   def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long): List[InputBox] = ???
 
