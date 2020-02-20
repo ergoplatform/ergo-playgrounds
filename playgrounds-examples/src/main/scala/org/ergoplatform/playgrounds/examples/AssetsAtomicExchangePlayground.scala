@@ -176,7 +176,7 @@ object AssetsAtomicExchangePlayground {
   checkSwapScenario()
   // checkRefundScenario()
 
-  blockchain.getStatsFor(seller)
-  blockchain.getStatsFor(buyer)
-  blockchain.getStatsFor(dexWallet.getAddress.pubKey)
+  blockchain.getUnspentAssetsFor(seller)
+  blockchain.getUnspentAssetsFor(buyer)
+  blockchain.getUnspentAssetsFor(dexWallet.getAddress.pubKey)
 }

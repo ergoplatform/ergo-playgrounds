@@ -13,6 +13,7 @@ trait TransactionDsl {
     inputs: List[InputBox],
     outputs: List[OutBoxCandidate],
     fee: Long
-  ): UnsignedTransaction = ???
+  ): UnsignedTransaction =
+    UnsignedTransaction(inputs, outputs)
 
 }

@@ -1,5 +1,6 @@
 package org.ergoplatform.playgrounds.models
 
+import org.ergoplatform.playgrounds.dsl.ObjectGenerators
 import special.sigma.SigmaProp
 
 trait Wallet {
@@ -14,5 +15,11 @@ case class NaiveWallet(val pk: SigmaProp) extends Wallet {
 
   override def getAddress: Address = Address(pk)
 
-  override def sign(tx: UnsignedTransaction): SignedTransaction = ???
+  override def sign(tx: UnsignedTransaction): SignedTransaction = {
+    val id = ObjectGenerators.newErgoId
+    val outs = tx.outputs.map { b =>
+      OutBox(id, b.value, b.tokens, b.registers, b.script)
+    }
+    SignedTransaction(id, tx.inputs, outs)
+  }
 }

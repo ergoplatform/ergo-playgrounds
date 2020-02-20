@@ -18,14 +18,16 @@ trait GeneratorsDsl {
 
   def newBlockChainSimulation: BlockchainSimulation = NaiveBlockchainSimulation()
 
-  def newTokenId: Coll[Byte] =
-    Array.fill(TokenId.size)((scala.util.Random.nextInt(256) - 128).toByte).toColl
+  def newTokenId: Coll[Byte] = ObjectGenerators.newErgoId
 
   def newWallet: Wallet = NaiveWallet(ObjectGenerators.newSigmaProp)
 
 }
 
 object ObjectGenerators {
+
+  def newErgoId: Coll[Byte] =
+    Array.fill(TokenId.size)((scala.util.Random.nextInt(256) - 128).toByte).toColl
 
   def newSigmaProp: SigmaProp =
     CSigmaProp(ProveDlog(CryptoConstants.dlogGroup.createRandomElement()))

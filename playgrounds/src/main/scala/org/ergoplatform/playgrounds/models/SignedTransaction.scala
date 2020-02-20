@@ -1,6 +1,5 @@
 package org.ergoplatform.playgrounds.models
 
-trait SignedTransaction {
-  def inputs: Seq[InputBox]
-  def outputs: Seq[OutBox]
-}
+import org.ergoplatform.playgrounds.models.Types.ErgoId
+
+case class SignedTransaction(id: ErgoId, inputs: Seq[InputBox], outputs: Seq[OutBox])
