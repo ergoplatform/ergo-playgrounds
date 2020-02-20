@@ -27,7 +27,7 @@ dynverSeparator in ThisBuild := "-"
 lazy val allConfigDependency = "compile->compile;test->test"
 
 lazy val dependencies = Seq(
-  "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-23-3f057c6b-SNAPSHOT",
+  "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-24-c5373c88-SNAPSHOT",
 )
 
 lazy val testingDependencies = Seq(
@@ -78,11 +78,11 @@ lazy val commonScalacOptions = List(
 // usePgpKeyHex("")
 
 lazy val credentialFile = Path.userHome / ".sbt" / ".sigma-sonatype-credentials"
-credentials ++= (for {
+credentials in ThisBuild ++= (for {
   file <- if (credentialFile.exists) Some(credentialFile) else None
 } yield Credentials(file)).toSeq
 
-credentials ++= (for {
+credentials in ThisBuild ++= (for {
   username <- Option(System.getenv().get("SONATYPE_USERNAME"))
   password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
 } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq

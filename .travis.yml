@@ -12,10 +12,6 @@ scala:
 - 2.12.9
 jdk:
 - openjdk8
-before_install:
-- curl -fsSL https://github.com/Z3Prover/z3/releases/download/z3-4.8.7/z3-4.8.7-x64-ubuntu-16.04.zip
-  -o z3-4.8.7-x64-ubuntu-16.04.zip; unzip -j z3-4.8.7-x64-ubuntu-16.04.zip -d z3_downloaded;
-  export PATH=$PATH:$(pwd)/z3_downloaded; z3 --version;
 stages:
 - test
 - formatting
@@ -35,7 +31,3 @@ jobs:
       && sbt -jvm-opts .travis.jvmopts publishSigned sonatypeBundleRelease
   - stage: snapshot
     script: sbt publish
-env:
-  global:
-  - secure: Rci1Y8Kt+DKtFvZxs+Hkex2OXAr2+0aG9W58OhkYQcuG7RUpoP+byYhm+i/HzSK3HFtUGV5oLQzWzlto/Vw8LvRL/6F/Pevua9nnOY8c8bAbRRMvpchQoVAgPm97K4ckdRAVkgmOCiECFARphwvyFKKNCr9XQ6V2yUt9SeD375DjA2gHLWtECWQH6PQv7fg6+gmgUrVx6ycks95hnYjfH/FQFPG038H5nyGqQ2OGZdDZrDjjuceTQ2AzDgDO9msf2XFQfu5+tDJ67KY3FAlYy+2KCZuN5v7NyUGWo4S6ug/CxI1li1JflQaGM7ed34OfboADt6Ly7tOKP5C47t6pq1fllOJacP8ISEEillPtqLaR1nmbgJagQiQne4HDTz/Gt9WfCU43RkSGbW+GGJ2C/CQ0qI6Vn+e+uYYf9Ec245qOIvxsiu+ZT6wZDq1UpF836bVI4EMe4OgaeIO4P0qgc8hXGRelEVoc8WJb8zbVkExph8VQFMIMTyLERSvqWy7eN2bIcij92IdL3zsKIcpOWkvkM3MqV90FYmk7iPgeCPvX8NA7GhWLBcbHtxGpa50rNXaDUmxWJKTyYrwsgueIo3IyigBFYUGekJ3ujTEQ6UXV9BtBwyMmybEnbzzWcjrw8DxsB9f1tjFJV4FhqnSihWzOpGsAh6uNMnXhsxVK3iY=
-  - secure: TuzI12IKVOES1FZ/jUgg4nBs87vhrjqqdsgcaSV6OeMKIdwCqo3+cFke91YTxi6KhzbELaD2GzDwokFamB9aY4f5ph/fq7khA2QMwHsV6gW37tFy1wxFXxmNXFNG25uS1bCp+xWzGwBdmBbMrSnOUzqSP3X44zfftKQR8udChQ7wT2rhY8K4vp3kr6LRl23rJtsX0wELJHLtoEq3IbxujYsN1itjYZpXo3E8nYASgrHSWc0QLEMzdHWO0X28M0gFpJ231v2qDOB9T5R7L2144l9WgWFAIyCo03nT3lgxJ6G0wa/5WUHycn1iVFTrUQhaxWEtLmOrxpwWOsHJPtTqWYtKaGU+b9+QWA4sf+q83kF+lSdsdZ5athBLOvz6IPG0vdu3bOHMCknxX9FFAmKMu72q0AufssDVlE8vwDdzdgpUN8FUBDWhlWxMrWOfEnzkv6En/SP5SetucP7m4QdqytD0jR+ND5g6aHWHL+BFJoB61qZk4XAFUr8+hoqNONWLOMbsHvzok9t4J0paKxb1ci5pVHKTLQ7YfdLW7Ppg6gpopounniHTCKGa9cHAWu/NHCsqf6qGmhf/CzWfF4Hqsij0a0AcvzZwenm/YTMQg1LEG5a4lvA4hpuX+iebWS8NEdKW/1c/EeX4W+xluuR7aTkMekik4LlynL20FocqKFE=
