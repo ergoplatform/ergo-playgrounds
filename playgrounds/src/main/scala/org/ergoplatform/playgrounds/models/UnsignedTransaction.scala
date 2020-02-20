@@ -4,4 +4,3 @@ trait UnsignedTransaction {
   def inputs: Seq[InputBox]
   def outputs: Seq[OutBoxCandidate]
 }
-

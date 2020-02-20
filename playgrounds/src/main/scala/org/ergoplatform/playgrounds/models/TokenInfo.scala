@@ -9,4 +9,3 @@ case class TokenInfo(tokenId: Coll[Byte], tokenAmount: Long)
 object TokenInfo {
   implicit def apply(t: (Coll[Byte], Long)): TokenInfo = new TokenInfo(t._1, t._2)
 }
-

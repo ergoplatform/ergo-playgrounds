@@ -1,7 +1,12 @@
 package org.ergoplatform.playgrounds.dsl
 
 import org.ergoplatform.ErgoBox.TokenId
-import org.ergoplatform.playgrounds.models.{BlockchainSimulation, NaiveBlockchainSimulation, NaiveWallet, Wallet}
+import org.ergoplatform.playgrounds.models.{
+  BlockchainSimulation,
+  NaiveBlockchainSimulation,
+  NaiveWallet,
+  Wallet
+}
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval.CSigmaProp
 import sigmastate.eval.Extensions.ArrayOps

@@ -19,20 +19,19 @@ trait BoxDsl {
 
   val R4 = ErgoBox.R4
 
-
   def Box(value: Long, script: SValue): OutBoxCandidate                   = ???
   def Box(value: Long, token: TokenInfo, script: SValue): OutBoxCandidate = ???
 
   def Box(
-           value: Long,
-           register: (NonMandatoryRegisterId, Any),
-           script: SValue
-         ): OutBoxCandidate = ???
+    value: Long,
+    register: (NonMandatoryRegisterId, Any),
+    script: SValue
+  ): OutBoxCandidate = ???
 
   def Box(
-           value: Long,
-           token: (Coll[Byte], Long),
-           register: (NonMandatoryRegisterId, Any),
-           script: SValue
-         ): OutBoxCandidate = ???
+    value: Long,
+    token: (Coll[Byte], Long),
+    register: (NonMandatoryRegisterId, Any),
+    script: SValue
+  ): OutBoxCandidate = ???
 }

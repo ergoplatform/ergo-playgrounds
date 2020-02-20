@@ -5,11 +5,7 @@ import sigmastate.Values.SValue
 
 import scala.language.implicitConversions
 
-object playground
-  extends GeneratorsDsl
-  with TypesDsl
-  with BoxDsl
-  with TransactionDsl {
+object playground extends GeneratorsDsl with TypesDsl with BoxDsl with TransactionDsl {
 
   val MinTxFee: Long = 1000 * 1000
   val MinErg: Long   = 1000 * 1000

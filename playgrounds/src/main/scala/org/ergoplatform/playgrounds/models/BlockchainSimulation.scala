@@ -24,9 +24,15 @@ case class NaiveBlockchainSimulation() extends BlockchainSimulation {
 
   override def send(tx: SignedTransaction): Unit = {}
 
-  override def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long): List[InputBox] = List()
+  override def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long): List[InputBox] =
+    List(InputBox(toSpend, pk))
 
-  override def makeUnspentBoxesFor(pk: SigmaProp, toSpend: Long, tokenToSpend: TokenInfo): List[InputBox] = List()
+  override def makeUnspentBoxesFor(
+    pk: SigmaProp,
+    toSpend: Long,
+    tokenToSpend: TokenInfo
+  ): List[InputBox] =
+    List(InputBox(toSpend, pk, List(tokenToSpend)))
 
   override def getStatsFor(pk: SigmaProp): PKBlockchainStats = ???
 }
