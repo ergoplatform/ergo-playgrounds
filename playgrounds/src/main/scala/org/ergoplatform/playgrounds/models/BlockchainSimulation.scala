@@ -4,7 +4,7 @@ import org.ergoplatform.playgrounds.dsl.ObjectGenerators
 import special.sigma.SigmaProp
 
 case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: TokenInfo) {
-  override def toString: String = s"$pk, $totalNanoErgs, $totalToken"
+//  override def toString: String = s"$pk, $totalNanoErgs, $totalToken"
 }
 
 trait BlockchainSimulation {
@@ -38,5 +38,5 @@ case class NaiveBlockchainSimulation() extends BlockchainSimulation {
     List(InputBox(toSpend, List(tokenToSpend), pk))
 
   override def getUnspentAssetsFor(pk: SigmaProp): PKBlockchainStats =
-    PKBlockchainStats(pk, 0L, TokenInfo(ObjectGenerators.newErgoId, 0L))
+    PKBlockchainStats(pk, 1000L, TokenInfo(ObjectGenerators.newErgoId, 100L))
 }
