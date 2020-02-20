@@ -12,7 +12,7 @@ trait Wallet {
 
 case class NaiveWallet(val pk: SigmaProp) extends Wallet {
 
-  override def getAddress: Address = ???
+  override def getAddress: Address = Address(pk)
 
   override def sign(tx: UnsignedTransaction): SignedTransaction = ???
 }
