@@ -56,6 +56,7 @@ lazy val playgroundsExamples = project
   .withId("playgrounds-examples")
   .settings(moduleName := "ergo-playgrounds-examples")
   .settings(commonSettings)
+  .settings(publish / skip := true)
   .dependsOn(playgrounds)
   .settings(
     libraryDependencies ++= dependencies ++ testingDependencies
