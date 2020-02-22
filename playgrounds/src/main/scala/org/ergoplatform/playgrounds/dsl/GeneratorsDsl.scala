@@ -2,9 +2,10 @@ package org.ergoplatform.playgrounds.dsl
 
 import org.ergoplatform.ErgoBox.TokenId
 import org.ergoplatform.playgrounds.models.{
+  BlockchainContext,
   BlockchainSimulation,
-  NaiveBlockchainSimulation,
   NaiveWallet,
+  TransactionBuilder,
   Wallet
 }
 import sigmastate.basics.DLogProtocol.ProveDlog
@@ -16,7 +17,10 @@ import special.sigma.SigmaProp
 
 trait GeneratorsDsl {
 
-  def newBlockChainSimulation: BlockchainSimulation = NaiveBlockchainSimulation()
+  def newBlockChainSimulation: BlockchainSimulation = ??? //NaiveBlockchainSimulation()
+
+  def newTransactionBuilder(ctx: BlockchainContext): TransactionBuilder =
+    new TransactionBuilder(ctx)
 
   def newTokenId: Coll[Byte] = ObjectGenerators.newErgoId
 
