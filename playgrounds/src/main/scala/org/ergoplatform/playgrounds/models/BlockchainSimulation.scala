@@ -1,5 +1,6 @@
 package org.ergoplatform.playgrounds.models
 
+import org.ergoplatform.compiler.ErgoScalaCompiler
 import org.ergoplatform.playgrounds.dsl.ObjectGenerators
 import special.sigma.SigmaProp
 
@@ -46,7 +47,7 @@ case class NaiveBlockchainSimulation() extends BlockchainSimulation {
     toSpend: Long,
     tokensToSpend: List[TokenInfo]
   ): List[InputBox] =
-    List(InputBox(toSpend, tokensToSpend, pk))
+    List(InputBox(toSpend, tokensToSpend, ErgoScalaCompiler.contract(pk).ergoTree))
 
   override def getUnspentAssetsFor(pk: SigmaProp): PKBlockchainStats =
     PKBlockchainStats(pk, 1000L, TokenInfo(ObjectGenerators.newErgoId, 100L))

@@ -1,22 +1,23 @@
 package org.ergoplatform.playgrounds.models
 
 import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
-import sigmastate.Values.SigmaPropValue
+import org.ergoplatform.compiler.ErgoContract
+import sigmastate.Values.ErgoTree
 import special.collection.Coll
 
 case class OutBoxCandidate(
   value: Long,
   tokens: List[TokenInfo],
   registers: List[(NonMandatoryRegisterId, Any)],
-  script: SigmaPropValue
+  script: ErgoTree
 ) {}
 
 object OutBoxCandidate {
 
   def apply(
     value: Long,
-    script: SigmaPropValue
-  ): OutBoxCandidate = new OutBoxCandidate(value, List(), List(), script)
+    script: ErgoContract
+  ): OutBoxCandidate = new OutBoxCandidate(value, List(), List(), script.ergoTree)
 
 }
 
@@ -25,5 +26,5 @@ case class OutBox(
   value: Long,
   tokens: List[TokenInfo],
   registers: List[(NonMandatoryRegisterId, Any)],
-  script: SigmaPropValue
+  script: ErgoTree
 ) {}

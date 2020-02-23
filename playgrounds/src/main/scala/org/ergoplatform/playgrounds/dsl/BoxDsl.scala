@@ -2,6 +2,7 @@ package org.ergoplatform.playgrounds.dsl
 
 import org.ergoplatform.ErgoBox
 import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
+import org.ergoplatform.compiler.ErgoContract
 import org.ergoplatform.playground.Coll
 import org.ergoplatform.playgrounds.models.{InputBox, OutBox, OutBoxCandidate, TokenInfo}
 import sigmastate.Values.{SValue, SigmaPropValue}
@@ -20,22 +21,23 @@ trait BoxDsl {
 
   val R4 = ErgoBox.R4
 
-  def Box(value: Long, script: SigmaPropValue): OutBoxCandidate =
+  def Box(value: Long, script: ErgoContract): OutBoxCandidate =
     OutBoxCandidate(value, script)
 
-  def Box(value: Long, token: TokenInfo, script: SigmaPropValue): OutBoxCandidate =
-    OutBoxCandidate(value, List(token), List(), script)
+  def Box(value: Long, token: TokenInfo, script: ErgoContract): OutBoxCandidate =
+    OutBoxCandidate(value, List(token), List(), script.ergoTree)
 
   def Box(
     value: Long,
     register: (NonMandatoryRegisterId, Any),
-    script: SigmaPropValue
-  ): OutBoxCandidate = OutBoxCandidate(value, List(), List(register), script)
+    script: ErgoContract
+  ): OutBoxCandidate = OutBoxCandidate(value, List(), List(register), script.ergoTree)
 
   def Box(
     value: Long,
     token: (Coll[Byte], Long),
     register: (NonMandatoryRegisterId, Any),
-    script: SigmaPropValue
-  ): OutBoxCandidate = OutBoxCandidate(value, List(token), List(register), script)
+    script: ErgoContract
+  ): OutBoxCandidate =
+    OutBoxCandidate(value, List(token), List(register), script.ergoTree)
 }

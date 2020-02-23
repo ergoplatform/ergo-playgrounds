@@ -102,14 +102,14 @@ object AssetsAtomicExchangePlayground {
     value    = MinErg,
     token    = (tokenId -> buyerBidTokenAmount),
     register = (R4 -> buyOrderTransactionSigned.outputs(0).id),
-    script   = pk(buyer)
+    script   = contract(buyer)
   )
 
   val sellerOutBox =
     Box(
       value    = sellerAskNanoErgs,
       register = (R4 -> sellOrderTransactionSigned.outputs(0).id),
-      script   = pk(seller)
+      script   = contract(seller)
     )
 
   val swapTransaction = txBuilder.makeTransaction(
@@ -127,7 +127,7 @@ object AssetsAtomicExchangePlayground {
   // --------------------------------------------------------------------------
 
   val buyerRefundBox =
-    Box(value = buyersBidNanoErgs, token = (newTokenId -> 1L), script = pk(buyer))
+    Box(value = buyersBidNanoErgs, token = (newTokenId -> 1L), script = contract(buyer))
 
   val cancelBuyTransaction =
     txBuilder.makeTransaction(
@@ -142,7 +142,11 @@ object AssetsAtomicExchangePlayground {
   // --------------------------------------------------------------------------
 
   val sellerRefundBox =
-    Box(value = MinErg, token = (tokenId -> sellerAskTokenAmount), script = pk(seller))
+    Box(
+      value  = MinErg,
+      token  = (tokenId -> sellerAskTokenAmount),
+      script = contract(seller)
+    )
 
   val cancelSellTransaction = txBuilder.makeTransaction(
     inputs  = List(sellOrderTransactionSigned.outputs(0)),

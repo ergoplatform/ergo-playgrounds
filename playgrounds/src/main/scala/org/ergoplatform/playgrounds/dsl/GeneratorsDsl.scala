@@ -4,6 +4,7 @@ import org.ergoplatform.ErgoBox.TokenId
 import org.ergoplatform.playgrounds.models.{
   BlockchainContext,
   BlockchainSimulation,
+  NaiveBlockchainSimulation,
   NaiveWallet,
   TransactionBuilder,
   Wallet
@@ -17,7 +18,7 @@ import special.sigma.SigmaProp
 
 trait GeneratorsDsl {
 
-  def newBlockChainSimulation: BlockchainSimulation = ??? //NaiveBlockchainSimulation()
+  def newBlockChainSimulation: BlockchainSimulation = NaiveBlockchainSimulation()
 
   def newTransactionBuilder(ctx: BlockchainContext): TransactionBuilder =
     new TransactionBuilder(ctx)

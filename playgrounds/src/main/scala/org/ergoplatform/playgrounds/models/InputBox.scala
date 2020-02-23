@@ -1,15 +1,16 @@
 package org.ergoplatform.playgrounds.models
 
-import sigmastate.Values.{SValue, SigmaPropValue}
+import org.ergoplatform.compiler.ErgoContract
+import sigmastate.Values.{ErgoTree, SValue, SigmaPropValue}
 
 case class InputBox(
   value: Long,
   tokens: List[TokenInfo],
-  script: SigmaPropValue
+  script: ErgoTree
 )
 
 object InputBox {
 
-  def apply(value: Long, script: SigmaPropValue): InputBox =
-    new InputBox(value, List(), script)
+  def apply(value: Long, script: ErgoContract): InputBox =
+    new InputBox(value, List(), script.ergoTree)
 }
