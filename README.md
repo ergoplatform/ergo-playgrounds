@@ -1,5 +1,5 @@
 # Ergo Playgrounds
-REPL for contracts + off-chain code in the browser. 
+Run contracts + off-chain code in the browser. 
 1. Design and model a contract along with its off-chain counterpart in the same Scala environment. 
 2. Share and discuss the contract. Explain how it works.
 3. Check different scenarios of contract execution.
@@ -11,7 +11,7 @@ Enjoy:
 ## Example:
 ### Assets Atomic Exchange (DEX) contract
 
-[Run it in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/31)
+[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/31)
 
 ```scala
 import org.ergoplatform.compiler.ErgoScalaCompiler._
