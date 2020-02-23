@@ -6,7 +6,7 @@ lazy val commonSettings = Seq(
   organization := "org.ergoplatform",
   resolvers += Resolver.sonatypeRepo("public"),
   licenses := Seq("CC0" -> url("https://creativecommons.org/publicdomain/zero/1.0/legalcode")),
-  description := "Playgrounds for modeling Ergo contracts",
+  description := "Playground for modeling Ergo contracts",
   pomExtra :=
     <developers>
       <developer>
@@ -40,24 +40,24 @@ lazy val root = project
   .withId("ergo-playgrounds")
   .settings(commonSettings)
   .settings(publish / skip := true)
-  .aggregate(playgrounds, playgroundsExamples)
+  .aggregate(playgroundEnv, playgrounds)
+
+lazy val playgroundEnv = project
+  .in(file("playground-env"))
+  .withId("playground-env")
+  .settings(moduleName := "ergo-playground-env")
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= dependencies ++ testingDependencies
+  )
 
 lazy val playgrounds = project
   .in(file("playgrounds"))
   .withId("playgrounds")
   .settings(moduleName := "ergo-playgrounds")
   .settings(commonSettings)
-  .settings(
-    libraryDependencies ++= dependencies ++ testingDependencies
-  )
-
-lazy val playgroundsExamples = project
-  .in(file("playgrounds-examples"))
-  .withId("playgrounds-examples")
-  .settings(moduleName := "ergo-playgrounds-examples")
-  .settings(commonSettings)
   .settings(publish / skip := true)
-  .dependsOn(playgrounds)
+  .dependsOn(playgroundEnv)
   .settings(
     libraryDependencies ++= dependencies ++ testingDependencies
   )
