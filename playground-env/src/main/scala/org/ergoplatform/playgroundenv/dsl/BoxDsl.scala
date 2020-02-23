@@ -1,15 +1,19 @@
-package org.ergoplatform.playground.dsl
+package org.ergoplatform.playgroundenv.dsl
 
 import org.ergoplatform.ErgoBox
 import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
 import org.ergoplatform.compiler.ErgoContract
-import org.ergoplatform.Env.Coll
-import org.ergoplatform.playground.models.{InputBox, OutBox, OutBoxCandidate, TokenInfo}
+import org.ergoplatform.playgroundenv.models.{
+  InputBox,
+  OutBox,
+  OutBoxCandidate,
+  TokenInfo
+}
 import sigmastate.Values.{SValue, SigmaPropValue}
 
 import scala.language.implicitConversions
 
-trait BoxDsl {
+trait BoxDsl extends TypesDsl {
 
   implicit def outBoxToInputBox(in: OutBox): InputBox =
     InputBox(in.value, in.tokens, in.script)

@@ -1,6 +1,6 @@
-package org.ergoplatform.playground.examples.test
+package org.ergoplatform.playgrounds.examples.test
 
-import org.ergoplatform.playground.examples.AssetsAtomicExchangePlayground
+import org.ergoplatform.playgrounds.examples.AssetsAtomicExchangePlayground
 import org.scalatest.PropSpec
 
 class AssetAtomicExchangePlaygroundSpec extends PropSpec {

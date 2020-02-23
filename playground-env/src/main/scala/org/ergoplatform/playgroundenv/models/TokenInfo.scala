@@ -1,4 +1,4 @@
-package org.ergoplatform.playground.models
+package org.ergoplatform.playgroundenv.models
 
 import scorex.util.encode.Base16
 import special.collection.Coll

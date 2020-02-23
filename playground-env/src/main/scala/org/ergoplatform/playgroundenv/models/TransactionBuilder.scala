@@ -1,4 +1,4 @@
-package org.ergoplatform.playground.models
+package org.ergoplatform.playgroundenv.models
 
 import special.sigma.SigmaProp
 

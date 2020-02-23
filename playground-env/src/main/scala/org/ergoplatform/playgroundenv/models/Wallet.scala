@@ -1,6 +1,6 @@
-package org.ergoplatform.playground.models
+package org.ergoplatform.playgroundenv.models
 
-import org.ergoplatform.playground.dsl.ObjectGenerators
+import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
 import special.sigma.SigmaProp
 
 trait Wallet {

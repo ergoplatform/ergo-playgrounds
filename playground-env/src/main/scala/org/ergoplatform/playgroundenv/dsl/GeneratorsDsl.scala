@@ -1,7 +1,7 @@
-package org.ergoplatform.playground.dsl
+package org.ergoplatform.playgroundenv.dsl
 
 import org.ergoplatform.ErgoBox.TokenId
-import org.ergoplatform.playground.models.{
+import org.ergoplatform.playgroundenv.models.{
   BlockchainContext,
   BlockchainSimulation,
   NaiveBlockchainSimulation,

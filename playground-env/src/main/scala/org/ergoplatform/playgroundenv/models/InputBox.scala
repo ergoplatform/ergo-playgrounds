@@ -1,4 +1,4 @@
-package org.ergoplatform.playground.models
+package org.ergoplatform.playgroundenv.models
 
 import org.ergoplatform.compiler.ErgoContract
 import sigmastate.Values.{ErgoTree, SValue, SigmaPropValue}

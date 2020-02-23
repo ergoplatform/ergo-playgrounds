@@ -1,4 +1,4 @@
-package org.ergoplatform.playground.dsl
+package org.ergoplatform.playgroundenv.dsl
 
 trait TypesDsl {
 

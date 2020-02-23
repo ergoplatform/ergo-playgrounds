@@ -1,9 +1,8 @@
-package org.ergoplatform.playground.examples
-
-import org.ergoplatform.compiler.ErgoScalaCompiler._
-import org.ergoplatform.Env._
+package org.ergoplatform.playgrounds.examples
 
 object AssetsAtomicExchangePlayground {
+  import org.ergoplatform.compiler.ErgoScalaCompiler._
+  import org.ergoplatform.playground._
 
   val blockchainSim = newBlockChainSimulation
   val txBuilder     = newTransactionBuilder(blockchainSim.ctx)
