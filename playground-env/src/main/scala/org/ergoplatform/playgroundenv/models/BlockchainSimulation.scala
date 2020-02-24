@@ -10,46 +10,46 @@ case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: Tok
 
 trait BlockchainSimulation {
 
-  val ctx: BlockchainContext
+  def newParty(name: String): Party
 
   def send(tx: SignedTransaction): Unit
 
   def generateUnspentBoxesFor(
-    pk: SigmaProp,
+    pk: Address,
     toSpend: Long,
     tokensToSpend: List[TokenInfo] = List()
   ): Unit
 
   def selectUnspentBoxesFor(
-    pk: SigmaProp,
+    pk: Address,
     toSpend: Long,
     tokensToSpend: List[TokenInfo] = List()
   ): List[InputBox]
 
-  def getUnspentAssetsFor(pk: SigmaProp): PKBlockchainStats
-
+  def printUnspentAssetsFor(party: Party)
 }
 
-case class NaiveBlockchainSimulation() extends BlockchainSimulation {
+case class NaiveBlockchainSimulation(scenarioName: String) extends BlockchainSimulation {
 
-  override val ctx: BlockchainContext = DummyBlockchainContext(this)
+  private val ctx: BlockchainContext = DummyBlockchainContext(this)
+
+  override def newParty(name: String): Party = NaiveParty(ctx, name)
 
   override def send(tx: SignedTransaction): Unit = {}
 
   override def generateUnspentBoxesFor(
-    pk: SigmaProp,
+    pk: Address,
     toSpend: Long,
     tokensToSpend: List[TokenInfo]
   ): Unit = {}
 
   override def selectUnspentBoxesFor(
-    pk: SigmaProp,
+    pk: Address,
     toSpend: Long,
     tokensToSpend: List[TokenInfo]
   ): List[InputBox] =
-    List(InputBox(toSpend, tokensToSpend, ErgoScalaCompiler.contract(pk).ergoTree))
+    List(InputBox(toSpend, tokensToSpend, ErgoScalaCompiler.contract(pk.pubKey).ergoTree))
 
-  override def getUnspentAssetsFor(pk: SigmaProp): PKBlockchainStats =
-    PKBlockchainStats(pk, 1000L, TokenInfo(ObjectGenerators.newErgoId, 100L))
-
+  override def printUnspentAssetsFor(party: Party): Unit =
+    println("STATS")
 }

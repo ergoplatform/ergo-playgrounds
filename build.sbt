@@ -28,6 +28,7 @@ lazy val allConfigDependency = "compile->compile;test->test"
 
 lazy val dependencies = Seq(
   "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-26-e5f55594-SNAPSHOT",
+  "org.ergoplatform" %% "ergo-wallet" % "appkit-wallet-f7f7d673-SNAPSHOT"
 )
 
 lazy val testingDependencies = Seq(

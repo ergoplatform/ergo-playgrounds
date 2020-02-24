@@ -11,7 +11,7 @@ trait Wallet {
 
 }
 
-case class NaiveWallet(val pk: SigmaProp) extends Wallet {
+class NaiveWallet(ctx: BlockchainContext, pk: SigmaProp, name: String) extends Wallet {
 
   override def getAddress: Address = Address(pk)
 
@@ -22,4 +22,10 @@ case class NaiveWallet(val pk: SigmaProp) extends Wallet {
     }
     SignedTransaction(id, tx.inputs, outs)
   }
+}
+
+object NaiveWallet {
+
+  def apply(ctx: BlockchainContext, pk: SigmaProp, name: String): NaiveWallet =
+    new NaiveWallet(ctx, pk, name)
 }
