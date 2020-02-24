@@ -5,13 +5,16 @@ import special.sigma.SigmaProp
 
 trait Wallet {
 
+  def name: String
+
   def getAddress: Address
 
   def sign(tx: UnsignedTransaction): SignedTransaction
 
 }
 
-class NaiveWallet(ctx: BlockchainContext, pk: SigmaProp, name: String) extends Wallet {
+class NaiveWallet(ctx: BlockchainContext, pk: SigmaProp, override val name: String)
+  extends Wallet {
 
   override def getAddress: Address = Address(pk)
 
