@@ -15,7 +15,7 @@ import special.sigma.SigmaProp
 trait GeneratorsDsl {
 
   def newBlockChainSimulationScenario(scenarioName: String): BlockchainSimulation = {
-    println(s"Creating blockchain simulation scenario $scenarioName")
+    println(s"Creating blockchain simulation scenario: $scenarioName")
     NaiveBlockchainSimulation(scenarioName)
   }
 
