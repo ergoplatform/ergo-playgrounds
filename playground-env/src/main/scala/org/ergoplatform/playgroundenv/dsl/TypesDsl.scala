@@ -7,4 +7,5 @@ trait TypesDsl {
   type ErgoContract         = org.ergoplatform.compiler.ErgoContract
   type BlockchainSimulation = org.ergoplatform.playgroundenv.models.BlockchainSimulation
   type Address              = org.ergoplatform.playgroundenv.models.Address
+  type Party                = org.ergoplatform.playgroundenv.models.Party
 }

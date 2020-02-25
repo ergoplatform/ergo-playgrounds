@@ -4,19 +4,17 @@ object AssetsAtomicExchangePlayground {
   import org.ergoplatform.compiler.ErgoScalaCompiler._
   import org.ergoplatform.playground._
 
-  // TODO: move generateUnspentBoxes to Party
-
-  // TODO: don't pass BlockchainSim, instead of Address pass Party, make Party.selectUnspentBoxes(amountToSpend)
   def buyerOrder(
-    blockchainSim: BlockchainSimulation,
+    buyerParty: Party,
     tokenId: Coll[Byte],
     tokenAmount: Long,
-    ergAmount: Long,
-    buyerAddress: Address
+    ergAmount: Long
   ) = {
 
+    val buyerPk = buyerParty.wallet.getAddress.pubKey
+
     val BuyerContract = contract {
-      buyerAddress.pubKey || {
+      buyerPk || {
         (OUTPUTS.nonEmpty && OUTPUTS(0).R4[Coll[Byte]].isDefined) && {
           val tokens = OUTPUTS(0).tokens
           val tokenDataCorrect = tokens.nonEmpty &&
@@ -24,46 +22,43 @@ object AssetsAtomicExchangePlayground {
             tokens(0)._2 >= tokenAmount
 
           val knownId = OUTPUTS(0).R4[Coll[Byte]].get == SELF.id
-          tokenDataCorrect && OUTPUTS(0).propositionBytes == buyerAddress.pubKey.propBytes && knownId
+          tokenDataCorrect && OUTPUTS(0).propositionBytes == buyerPk.propBytes && knownId
         }
       }
     }
 
-    val buyerBalance =
-      blockchainSim.selectUnspentBoxesFor(buyerAddress, toSpend = ergAmount)
-
     val buyerBidBox = Box(value = ergAmount, script = BuyerContract)
 
     Transaction(
-      inputs       = buyerBalance,
+      inputs       = buyerParty.selectUnspentBoxes(toSpend = ergAmount),
       outputs      = List(buyerBidBox),
       fee          = MinTxFee,
-      sendChangeTo = contract(buyerAddress.pubKey)
+      sendChangeTo = contract(buyerPk)
     )
   }
 
   def sellerOrder(
-    blockchainSim: BlockchainSimulation,
+    sellerParty: Party,
     tokenId: Coll[Byte],
     tokenAmount: Long,
-    ergAmount: Long,
-    sellerAddress: Address
+    ergAmount: Long
   ) = {
 
+    val sellerPk = sellerParty.wallet.getAddress.pubKey
+
     val SellerContract = contract {
-      sellerAddress.pubKey || (
+      sellerPk || (
         OUTPUTS.size > 1 &&
         OUTPUTS(1).R4[Coll[Byte]].isDefined
       ) && {
         val knownBoxId = OUTPUTS(1).R4[Coll[Byte]].get == SELF.id
         OUTPUTS(1).value >= ergAmount &&
         knownBoxId &&
-        OUTPUTS(1).propositionBytes == sellerAddress.pubKey.propBytes
+        OUTPUTS(1).propositionBytes == sellerPk.propBytes
       }
     }
 
-    val sellerBalanceBoxes = blockchainSim.selectUnspentBoxesFor(
-      sellerAddress,
+    val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
       toSpend       = MinErg,
       tokensToSpend = List(tokenId -> tokenAmount)
     )
@@ -78,7 +73,7 @@ object AssetsAtomicExchangePlayground {
       inputs       = sellerBalanceBoxes,
       outputs      = List(sellerAskBox),
       fee          = MinTxFee,
-      sendChangeTo = contract(sellerAddress.pubKey)
+      sendChangeTo = contract(sellerPk)
     )
   }
 
@@ -86,23 +81,20 @@ object AssetsAtomicExchangePlayground {
 
     val blockchainSim = newBlockChainSimulationScenario("Swap")
 
+    val tokenId = newTokenId
+
     val buyerParty          = blockchainSim.newParty("buyer")
     val buyerBidTokenAmount = 100
     val buyersBidNanoErgs   = 100000000
 
-    blockchainSim.generateUnspentBoxesFor(
-      buyerParty.wallet.getAddress,
-      toSpend = buyersBidNanoErgs
-    )
-    val tokenId = newTokenId
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
 
     val buyOrderTransaction =
       buyerOrder(
-        blockchainSim,
+        buyerParty,
         tokenId,
         buyerBidTokenAmount,
-        buyersBidNanoErgs,
-        buyerParty.wallet.getAddress
+        buyersBidNanoErgs
       )
 
     val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
@@ -113,19 +105,17 @@ object AssetsAtomicExchangePlayground {
     val sellerAskNanoErgs    = 50000000
     val sellerAskTokenAmount = 100L
 
-    blockchainSim.generateUnspentBoxesFor(
-      sellerParty.wallet.getAddress,
+    sellerParty.generateUnspentBoxes(
       toSpend       = MinErg,
       tokensToSpend = List(tokenId -> sellerAskTokenAmount)
     )
 
     val sellOrderTransaction =
       sellerOrder(
-        blockchainSim,
+        sellerParty,
         tokenId,
         sellerAskTokenAmount,
-        sellerAskNanoErgs,
-        sellerParty.wallet.getAddress
+        sellerAskNanoErgs
       )
 
     val sellOrderTransactionSigned = sellerParty.wallet.sign(sellOrderTransaction)
@@ -159,9 +149,9 @@ object AssetsAtomicExchangePlayground {
 
     blockchainSim.send(swapTransactionSigned)
 
-    blockchainSim.printUnspentAssetsFor(sellerParty)
-    blockchainSim.printUnspentAssetsFor(buyerParty)
-    blockchainSim.printUnspentAssetsFor(dexParty)
+    sellerParty.printUnspentAssets()
+    buyerParty.printUnspentAssets()
+    dexParty.printUnspentAssets()
   }
 
   def refundBuyOrderScenario = {
@@ -172,19 +162,15 @@ object AssetsAtomicExchangePlayground {
     val buyerBidTokenAmount = 100
     val buyersBidNanoErgs   = 100000000
 
-    blockchainSim.generateUnspentBoxesFor(
-      buyerParty.wallet.getAddress,
-      toSpend = buyersBidNanoErgs
-    )
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
     val tokenId = newTokenId
 
     val buyOrderTransaction =
       buyerOrder(
-        blockchainSim,
+        buyerParty,
         tokenId,
         buyerBidTokenAmount,
-        buyersBidNanoErgs,
-        buyerParty.wallet.getAddress
+        buyersBidNanoErgs
       )
 
     val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
@@ -205,7 +191,7 @@ object AssetsAtomicExchangePlayground {
     val cancelBuyTransactionSigned = buyerParty.wallet.sign(cancelBuyTransaction)
     blockchainSim.send(cancelBuyTransactionSigned)
 
-    blockchainSim.printUnspentAssetsFor(buyerParty)
+    buyerParty.printUnspentAssets()
   }
 
   def refundSellOrderScenario = {
@@ -217,19 +203,17 @@ object AssetsAtomicExchangePlayground {
     val sellerAskNanoErgs    = 50000000
     val sellerAskTokenAmount = 100L
 
-    blockchainSim.generateUnspentBoxesFor(
-      sellerParty.wallet.getAddress,
+    sellerParty.generateUnspentBoxes(
       toSpend       = MinErg,
       tokensToSpend = List(tokenId -> sellerAskTokenAmount)
     )
 
     val sellOrderTransaction =
       sellerOrder(
-        blockchainSim,
+        sellerParty,
         tokenId,
         sellerAskTokenAmount,
-        sellerAskNanoErgs,
-        sellerParty.wallet.getAddress
+        sellerAskNanoErgs
       )
 
     val sellOrderTransactionSigned = sellerParty.wallet.sign(sellOrderTransaction)
@@ -252,7 +236,7 @@ object AssetsAtomicExchangePlayground {
 
     blockchainSim.send(cancelSellTransactionSigned)
 
-    blockchainSim.printUnspentAssetsFor(sellerParty)
+    sellerParty.printUnspentAssets()
   }
 
   swapScenario

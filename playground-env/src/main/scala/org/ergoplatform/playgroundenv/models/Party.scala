@@ -1,5 +1,6 @@
 package org.ergoplatform.playgroundenv.models
 
+import org.ergoplatform.compiler.ErgoScalaCompiler
 import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
 
 trait Party {
@@ -7,14 +8,48 @@ trait Party {
   def name: String
   def wallet: Wallet
 
+  def generateUnspentBoxes(
+    toSpend: Long,
+    tokensToSpend: List[TokenInfo] = List()
+  ): Unit
+
+  def selectUnspentBoxes(
+    toSpend: Long,
+    tokensToSpend: List[TokenInfo] = List()
+  ): List[InputBox]
+
+  def printUnspentAssets(): Unit
 }
 
-class NaiveParty(ctx: BlockchainContext, override val name: String) extends Party {
+class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
+  extends Party {
 
   override def wallet: Wallet =
-    NaiveWallet(ctx, ObjectGenerators.newSigmaProp, s"$name Wallet")
+    NaiveWallet(blockchain.context, ObjectGenerators.newSigmaProp, s"$name Wallet")
+
+  override def generateUnspentBoxes(
+    toSpend: Long,
+    tokensToSpend: List[TokenInfo]
+  ): Unit = {}
+
+  override def selectUnspentBoxes(
+    toSpend: Long,
+    tokensToSpend: List[TokenInfo]
+  ): List[InputBox] =
+    List(
+      InputBox(
+        toSpend,
+        tokensToSpend,
+        ErgoScalaCompiler.contract(wallet.getAddress.pubKey).ergoTree
+      )
+    )
+
+  override def printUnspentAssets(): Unit = println("STATS")
+
 }
 
 object NaiveParty {
-  def apply(ctx: BlockchainContext, name: String): NaiveParty = new NaiveParty(ctx, name)
+
+  def apply(blockchain: BlockchainSimulation, name: String): NaiveParty =
+    new NaiveParty(blockchain, name)
 }
