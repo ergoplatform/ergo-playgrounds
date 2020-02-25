@@ -11,7 +11,7 @@ Enjoy:
 ## Example:
 ### Assets Atomic Exchange (DEX) contract
 
-[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/31)
+[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/45)
 
 https://github.com/ergoplatform/ergo-playgrounds/blob/1a767bf31925bdec0ff9a1a7c2c66f2aee78883f/playgrounds/src/main/scala/org/ergoplatform/playgrounds/examples/AssetsAtomicExchangePlayground.scala#L4-L244
 
