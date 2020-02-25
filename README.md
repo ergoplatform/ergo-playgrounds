@@ -11,186 +11,248 @@ Enjoy:
 ## Example:
 ### Assets Atomic Exchange (DEX) contract
 
-[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/31)
+[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/45)
 
 ```scala
-import org.ergoplatform.compiler.ErgoScalaCompiler._
-import org.ergoplatform.playground._
+  import org.ergoplatform.compiler.ErgoScalaCompiler._
+  import org.ergoplatform.playground._
 
-val blockchainSim = newBlockChainSimulation
-val txBuilder = newTransactionBuilder(blockchainSim.ctx)
+  def buyerOrder(
+    buyerParty: Party,
+    tokenId: Coll[Byte],
+    tokenAmount: Long,
+    ergAmount: Long
+  ) = {
 
-val tokenId = newTokenId
+    val buyerPk = buyerParty.wallet.getAddress.pubKey
 
-val sellerWallet = newWallet
-val seller = sellerWallet.getAddress.pubKey
-val sellerAskNanoErgs = 50000000
-val sellerAskTokenAmount = 100L
-blockchainSim.generateUnspentBoxesFor(
-  seller,
-  toSpend = MinErg,
-  tokensToSpend = List(tokenId -> sellerAskTokenAmount)
-)
+    val BuyerContract = contract {
+      buyerPk || {
+        (OUTPUTS.nonEmpty && OUTPUTS(0).R4[Coll[Byte]].isDefined) && {
+          val tokens = OUTPUTS(0).tokens
+          val tokenDataCorrect = tokens.nonEmpty &&
+            tokens(0)._1 == tokenId &&
+            tokens(0)._2 >= tokenAmount
 
-val buyerWallet = newWallet
-val buyer = buyerWallet.getAddress.pubKey
-val buyerBidTokenAmount = 100
-val buyersBidNanoErgs = 100000000
-blockchainSim.generateUnspentBoxesFor(buyer, toSpend = buyersBidNanoErgs)
-
-// Buy order
-// --------------------------------------------------------------------------
-val BuyerContract = contract {
-  buyer || {
-    (OUTPUTS.nonEmpty && OUTPUTS(0).R4[Coll[Byte]].isDefined) && {
-      val tokens = OUTPUTS(0).tokens
-      val tokenDataCorrect = tokens.nonEmpty &&
-        tokens(0)._1 == tokenId &&
-        tokens(0)._2 >= buyerBidTokenAmount
-
-      val knownId = OUTPUTS(0).R4[Coll[Byte]].get == SELF.id
-      tokenDataCorrect && OUTPUTS(0).propositionBytes == buyer.propBytes && knownId
+          val knownId = OUTPUTS(0).R4[Coll[Byte]].get == SELF.id
+          tokenDataCorrect && OUTPUTS(0).propositionBytes == buyerPk.propBytes && knownId
+        }
+      }
     }
+
+    val buyerBidBox = Box(value = ergAmount, script = BuyerContract)
+
+    Transaction(
+      inputs       = buyerParty.selectUnspentBoxes(toSpend = ergAmount),
+      outputs      = List(buyerBidBox),
+      fee          = MinTxFee,
+      sendChangeTo = contract(buyerPk)
+    )
   }
-}
 
-val buyerBalance =
-  blockchainSim.selectUnspentBoxesFor(buyer, toSpend = buyersBidNanoErgs)
+  def sellerOrder(
+    sellerParty: Party,
+    tokenId: Coll[Byte],
+    tokenAmount: Long,
+    ergAmount: Long
+  ) = {
 
-val buyerBidBox = Box(value = buyersBidNanoErgs, script = BuyerContract)
+    val sellerPk = sellerParty.wallet.getAddress.pubKey
 
-val buyOrderTransaction = txBuilder.makeTransaction(
-  inputs = buyerBalance,
-  outputs = List(buyerBidBox),
-  fee = MinTxFee,
-  sendChangeTo = buyer
-)
+    val SellerContract = contract {
+      sellerPk || (
+        OUTPUTS.size > 1 &&
+        OUTPUTS(1).R4[Coll[Byte]].isDefined
+      ) && {
+        val knownBoxId = OUTPUTS(1).R4[Coll[Byte]].get == SELF.id
+        OUTPUTS(1).value >= ergAmount &&
+        knownBoxId &&
+        OUTPUTS(1).propositionBytes == sellerPk.propBytes
+      }
+    }
 
-val buyOrderTransactionSigned = buyerWallet.sign(buyOrderTransaction)
+    val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
+      toSpend       = MinErg,
+      tokensToSpend = List(tokenId -> tokenAmount)
+    )
 
-blockchainSim.send(buyOrderTransactionSigned)
+    val sellerAskBox = Box(
+      value  = MinErg,
+      token  = (tokenId -> tokenAmount),
+      script = SellerContract
+    )
 
-// Sell order
-// --------------------------------------------------------------------------
-val SellerContract = contract {
-  seller || (
-    OUTPUTS.size > 1 &&
-    OUTPUTS(1).R4[Coll[Byte]].isDefined
-  ) && {
-    val knownBoxId = OUTPUTS(1).R4[Coll[Byte]].get == SELF.id
-    OUTPUTS(1).value >= sellerAskNanoErgs &&
-    knownBoxId &&
-    OUTPUTS(1).propositionBytes == seller.propBytes
+    Transaction(
+      inputs       = sellerBalanceBoxes,
+      outputs      = List(sellerAskBox),
+      fee          = MinTxFee,
+      sendChangeTo = contract(sellerPk)
+    )
   }
-}
 
-val sellerBalanceBoxes = blockchainSim.selectUnspentBoxesFor(
-  seller,
-  toSpend = MinErg,
-  tokensToSpend = List(tokenId -> sellerAskTokenAmount)
-)
+  def swapScenario = {
 
-val sellerAskBox = Box(
-  value = MinErg,
-  token = (tokenId -> sellerAskTokenAmount),
-  script = SellerContract
-)
+    val blockchainSim = newBlockChainSimulationScenario("Swap")
 
-val sellOrderTransaction = txBuilder.makeTransaction(
-  inputs = sellerBalanceBoxes,
-  outputs = List(sellerAskBox),
-  fee = MinTxFee,
-  sendChangeTo = seller
-)
+    val tokenId = newTokenId
 
-val sellOrderTransactionSigned = sellerWallet.sign(sellOrderTransaction)
+    val buyerParty          = blockchainSim.newParty("buyer")
+    val buyerBidTokenAmount = 100
+    val buyersBidNanoErgs   = 100000000
 
-blockchainSim.send(sellOrderTransactionSigned)
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
 
-// Swap (match) buy and sell orders
-// --------------------------------------------------------------------------
+    val buyOrderTransaction =
+      buyerOrder(
+        buyerParty,
+        tokenId,
+        buyerBidTokenAmount,
+        buyersBidNanoErgs
+      )
 
-val buyerOutBox = Box(
-  value = MinErg,
-  token = (tokenId -> buyerBidTokenAmount),
-  register = (R4 -> buyOrderTransactionSigned.outputs(0).id),
-  script = contract(buyer)
-)
+    val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
 
-val sellerOutBox =
-  Box(
-    value = sellerAskNanoErgs,
-    register = (R4 -> sellOrderTransactionSigned.outputs(0).id),
-    script = contract(seller)
-  )
+    blockchainSim.send(buyOrderTransactionSigned)
 
-val swapTransaction = txBuilder.makeTransaction(
-  inputs = List(
-    buyOrderTransactionSigned.outputs(0),
-    sellOrderTransactionSigned.outputs(0)
-  ),
-  outputs = List(buyerOutBox, sellerOutBox),
-  fee = MinTxFee
-)
+    val sellerParty          = blockchainSim.newParty("seller")
+    val sellerAskNanoErgs    = 50000000
+    val sellerAskTokenAmount = 100L
 
-val dexWallet = newWallet
+    sellerParty.generateUnspentBoxes(
+      toSpend       = MinErg,
+      tokensToSpend = List(tokenId -> sellerAskTokenAmount)
+    )
 
-val swapTransactionSigned = dexWallet.sign(swapTransaction)
+    val sellOrderTransaction =
+      sellerOrder(
+        sellerParty,
+        tokenId,
+        sellerAskTokenAmount,
+        sellerAskNanoErgs
+      )
 
-// Refund buyer order
-// --------------------------------------------------------------------------
+    val sellOrderTransactionSigned = sellerParty.wallet.sign(sellOrderTransaction)
 
-val buyerRefundBox =
-  Box(
-    value = buyersBidNanoErgs,
-    token = (newTokenId -> 1L),
-    script = contract(buyer)
-  )
+    blockchainSim.send(sellOrderTransactionSigned)
 
-val cancelBuyTransaction =
-  txBuilder.makeTransaction(
-    inputs = List(buyOrderTransactionSigned.outputs(0)),
-    outputs = List(buyerRefundBox),
-    fee = MinTxFee
-  )
+    val sellerOutBox =
+      Box(
+        value    = sellerAskNanoErgs,
+        register = (R4 -> sellOrderTransactionSigned.outputs(0).id),
+        script   = contract(sellerParty.wallet.getAddress.pubKey)
+      )
 
-val cancelBuyTransactionSigned = buyerWallet.sign(cancelBuyTransaction)
+    val buyerOutBox = Box(
+      value    = MinErg,
+      token    = (tokenId -> buyerBidTokenAmount),
+      register = (R4 -> buyOrderTransactionSigned.outputs(0).id),
+      script   = contract(buyerParty.wallet.getAddress.pubKey)
+    )
 
-// Refund sell order
-// --------------------------------------------------------------------------
+    val swapTransaction = Transaction(
+      inputs =
+        List(buyOrderTransactionSigned.outputs(0), sellOrderTransactionSigned.outputs(0)),
+      outputs = List(buyerOutBox, sellerOutBox),
+      fee     = MinTxFee
+    )
 
-val sellerRefundBox =
-  Box(
-    value = MinErg,
-    token = (tokenId -> sellerAskTokenAmount),
-    script = contract(seller)
-  )
+    val dexParty = blockchainSim.newParty("DEX")
 
-val cancelSellTransaction = txBuilder.makeTransaction(
-  inputs = List(sellOrderTransactionSigned.outputs(0)),
-  outputs = List(sellerRefundBox),
-  fee = MinTxFee
-)
+    val swapTransactionSigned = dexParty.wallet.sign(swapTransaction)
 
-val cancelSellTransactionSigned = buyerWallet.sign(cancelSellTransaction)
+    blockchainSim.send(swapTransactionSigned)
 
-// Swap scenario
-// --------------------------------------------------------------------------
-def checkSwapScenario() =
-  blockchainSim.send(swapTransactionSigned)
+    sellerParty.printUnspentAssets()
+    buyerParty.printUnspentAssets()
+    dexParty.printUnspentAssets()
+  }
 
-// Refund scenario
-// --------------------------------------------------------------------------
-def checkRefundScenario() = {
-  blockchainSim.send(cancelBuyTransactionSigned)
-  blockchainSim.send(cancelSellTransactionSigned)
-}
+  def refundBuyOrderScenario = {
 
-// Uncomment only one of them
-checkSwapScenario()
-// checkRefundScenario()
+    val blockchainSim = newBlockChainSimulationScenario("Refund buy order")
 
-blockchainSim.getUnspentAssetsFor(seller)
-blockchainSim.getUnspentAssetsFor(buyer)
-blockchainSim.getUnspentAssetsFor(dexWallet.getAddress.pubKey)
+    val buyerParty          = blockchainSim.newParty("buyer")
+    val buyerBidTokenAmount = 100
+    val buyersBidNanoErgs   = 100000000
+
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
+    val tokenId = newTokenId
+
+    val buyOrderTransaction =
+      buyerOrder(
+        buyerParty,
+        tokenId,
+        buyerBidTokenAmount,
+        buyersBidNanoErgs
+      )
+
+    val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
+
+    val buyerRefundBox =
+      Box(
+        value  = buyersBidNanoErgs,
+        token  = (newTokenId -> 1L),
+        script = contract(buyerParty.wallet.getAddress.pubKey)
+      )
+
+    val cancelBuyTransaction = Transaction(
+      inputs  = List(buyOrderTransactionSigned.outputs(0)),
+      outputs = List(buyerRefundBox),
+      fee     = MinTxFee
+    )
+
+    val cancelBuyTransactionSigned = buyerParty.wallet.sign(cancelBuyTransaction)
+    blockchainSim.send(cancelBuyTransactionSigned)
+
+    buyerParty.printUnspentAssets()
+  }
+
+  def refundSellOrderScenario = {
+
+    val blockchainSim = newBlockChainSimulationScenario("Refund sell order")
+
+    val tokenId              = newTokenId
+    val sellerParty          = blockchainSim.newParty("seller")
+    val sellerAskNanoErgs    = 50000000
+    val sellerAskTokenAmount = 100L
+
+    sellerParty.generateUnspentBoxes(
+      toSpend       = MinErg,
+      tokensToSpend = List(tokenId -> sellerAskTokenAmount)
+    )
+
+    val sellOrderTransaction =
+      sellerOrder(
+        sellerParty,
+        tokenId,
+        sellerAskTokenAmount,
+        sellerAskNanoErgs
+      )
+
+    val sellOrderTransactionSigned = sellerParty.wallet.sign(sellOrderTransaction)
+
+    blockchainSim.send(sellOrderTransactionSigned)
+    val sellerRefundBox =
+      Box(
+        value  = MinErg,
+        token  = (tokenId -> sellerAskTokenAmount),
+        script = contract(sellerParty.wallet.getAddress.pubKey)
+      )
+
+    val cancelSellTransaction = Transaction(
+      inputs  = List(sellOrderTransactionSigned.outputs(0)),
+      outputs = List(sellerRefundBox),
+      fee     = MinTxFee
+    )
+
+    val cancelSellTransactionSigned = sellerParty.wallet.sign(cancelSellTransaction)
+
+    blockchainSim.send(cancelSellTransactionSigned)
+
+    sellerParty.printUnspentAssets()
+  }
+
+  swapScenario
+  refundSellOrderScenario
+  refundBuyOrderScenario
 ```

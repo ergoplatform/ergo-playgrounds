@@ -1,7 +1,5 @@
 package org.ergoplatform.playgroundenv.models
 
-import org.ergoplatform.compiler.ErgoScalaCompiler
-import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
 import special.sigma.SigmaProp
 
 case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: TokenInfo) {
@@ -10,46 +8,22 @@ case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: Tok
 
 trait BlockchainSimulation {
 
-  val ctx: BlockchainContext
+  def context: BlockchainContext
+
+  def newParty(name: String): Party
 
   def send(tx: SignedTransaction): Unit
-
-  def generateUnspentBoxesFor(
-    pk: SigmaProp,
-    toSpend: Long,
-    tokensToSpend: List[TokenInfo] = List()
-  ): Unit
-
-  def selectUnspentBoxesFor(
-    pk: SigmaProp,
-    toSpend: Long,
-    tokensToSpend: List[TokenInfo] = List()
-  ): List[InputBox]
-
-  def getUnspentAssetsFor(pk: SigmaProp): PKBlockchainStats
-
 }
 
-case class NaiveBlockchainSimulation() extends BlockchainSimulation {
+case class NaiveBlockchainSimulation(scenarioName: String) extends BlockchainSimulation {
 
-  override val ctx: BlockchainContext = DummyBlockchainContext(this)
+  val context: BlockchainContext = DummyBlockchainContext(this)
 
-  override def send(tx: SignedTransaction): Unit = {}
+  override def newParty(name: String): Party = {
+    println(s"..$scenarioName: Creating new party: $name")
+    NaiveParty(this, name)
+  }
 
-  override def generateUnspentBoxesFor(
-    pk: SigmaProp,
-    toSpend: Long,
-    tokensToSpend: List[TokenInfo]
-  ): Unit = {}
-
-  override def selectUnspentBoxesFor(
-    pk: SigmaProp,
-    toSpend: Long,
-    tokensToSpend: List[TokenInfo]
-  ): List[InputBox] =
-    List(InputBox(toSpend, tokensToSpend, ErgoScalaCompiler.contract(pk).ergoTree))
-
-  override def getUnspentAssetsFor(pk: SigmaProp): PKBlockchainStats =
-    PKBlockchainStats(pk, 1000L, TokenInfo(ObjectGenerators.newErgoId, 100L))
-
+  override def send(tx: SignedTransaction): Unit =
+    println(s"..$scenarioName: Accepting transaction ShortTxDesc to the blockchain")
 }
