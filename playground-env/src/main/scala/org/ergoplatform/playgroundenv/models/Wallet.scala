@@ -19,6 +19,7 @@ class NaiveWallet(ctx: BlockchainContext, pk: SigmaProp, override val name: Stri
   override def getAddress: Address = Address(pk)
 
   override def sign(tx: UnsignedTransaction): SignedTransaction = {
+    println(s"      $name: Signing transaction ShortTxDesc")
     val id = ObjectGenerators.newErgoId
     val outs = tx.outputs.map { b =>
       OutBox(id, b.value, b.tokens, b.registers, b.script)

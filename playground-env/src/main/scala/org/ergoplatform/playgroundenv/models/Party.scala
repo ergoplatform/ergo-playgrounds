@@ -30,7 +30,10 @@ class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
   override def generateUnspentBoxes(
     toSpend: Long,
     tokensToSpend: List[TokenInfo]
-  ): Unit = {}
+  ): Unit =
+    println(
+      s"    $name: Generating unspent boxes for $toSpend nanoERGs and tokens: $tokensToSpend"
+    )
 
   override def selectUnspentBoxes(
     toSpend: Long,
@@ -44,7 +47,8 @@ class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
       )
     )
 
-  override def printUnspentAssets(): Unit = println("STATS")
+  override def printUnspentAssets(): Unit =
+    println(s"    $name: Unspent coins: XXX nanoERGs; tokens: (tokenName -> tokenAmount)")
 
 }
 
