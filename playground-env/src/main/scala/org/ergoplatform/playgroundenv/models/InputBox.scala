@@ -5,7 +5,7 @@ import sigmastate.Values.{ErgoTree, SValue, SigmaPropValue}
 
 case class InputBox(
   value: Long,
-  tokens: List[TokenInfo],
+  tokens: List[TokenAmount],
   script: ErgoTree
 )
 
