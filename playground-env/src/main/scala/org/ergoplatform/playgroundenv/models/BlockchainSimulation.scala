@@ -2,7 +2,11 @@ package org.ergoplatform.playgroundenv.models
 
 import special.sigma.SigmaProp
 
-case class PKBlockchainStats(pk: SigmaProp, totalNanoErgs: Long, totalToken: TokenInfo) {
+case class PKBlockchainStats(
+  pk: SigmaProp,
+  totalNanoErgs: Long,
+  totalToken: TokenAmount
+) {
 //  override def toString: String = s"$pk, $totalNanoErgs, $totalToken"
 }
 

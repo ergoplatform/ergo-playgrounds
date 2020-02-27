@@ -10,12 +10,12 @@ trait Party {
 
   def generateUnspentBoxes(
     toSpend: Long,
-    tokensToSpend: List[TokenInfo] = List()
+    tokensToSpend: List[TokenAmount] = List()
   ): Unit
 
   def selectUnspentBoxes(
     toSpend: Long,
-    tokensToSpend: List[TokenInfo] = List()
+    tokensToSpend: List[TokenAmount] = List()
   ): List[InputBox]
 
   def printUnspentAssets(): Unit
@@ -29,7 +29,7 @@ class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
 
   override def generateUnspentBoxes(
     toSpend: Long,
-    tokensToSpend: List[TokenInfo]
+    tokensToSpend: List[TokenAmount]
   ): Unit =
     println(
       s"....$name: Generating unspent boxes for $toSpend nanoERGs and tokens: $tokensToSpend"
@@ -37,7 +37,7 @@ class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
 
   override def selectUnspentBoxes(
     toSpend: Long,
-    tokensToSpend: List[TokenInfo]
+    tokensToSpend: List[TokenAmount]
   ): List[InputBox] =
     List(
       InputBox(

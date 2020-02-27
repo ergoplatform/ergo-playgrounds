@@ -7,6 +7,7 @@ import org.ergoplatform.playgroundenv.models.{
   InputBox,
   OutBox,
   OutBoxCandidate,
+  TokenAmount,
   TokenInfo
 }
 import sigmastate.Values.{SValue, SigmaPropValue}
@@ -28,7 +29,7 @@ trait BoxDsl extends TypesDsl {
   def Box(value: Long, script: ErgoContract): OutBoxCandidate =
     OutBoxCandidate(value, script)
 
-  def Box(value: Long, token: TokenInfo, script: ErgoContract): OutBoxCandidate =
+  def Box(value: Long, token: TokenAmount, script: ErgoContract): OutBoxCandidate =
     OutBoxCandidate(value, List(token), List(), script.ergoTree)
 
   def Box(
@@ -39,7 +40,7 @@ trait BoxDsl extends TypesDsl {
 
   def Box(
     value: Long,
-    token: (Coll[Byte], Long),
+    token: (TokenInfo, Long),
     register: (NonMandatoryRegisterId, Any),
     script: ErgoContract
   ): OutBoxCandidate =

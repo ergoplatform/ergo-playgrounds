@@ -11,7 +11,7 @@ Enjoy:
 ## Example:
 ### Assets Atomic Exchange (DEX) contract
 
-[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/45)
+[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/49)
 
 ```scala
   import org.ergoplatform.compiler.ErgoScalaCompiler._
@@ -19,7 +19,7 @@ Enjoy:
 
   def buyerOrder(
     buyerParty: Party,
-    tokenId: Coll[Byte],
+    token: TokenInfo,
     tokenAmount: Long,
     ergAmount: Long
   ) = {
@@ -31,7 +31,7 @@ Enjoy:
         (OUTPUTS.nonEmpty && OUTPUTS(0).R4[Coll[Byte]].isDefined) && {
           val tokens = OUTPUTS(0).tokens
           val tokenDataCorrect = tokens.nonEmpty &&
-            tokens(0)._1 == tokenId &&
+            tokens(0)._1 == token.tokenId &&
             tokens(0)._2 >= tokenAmount
 
           val knownId = OUTPUTS(0).R4[Coll[Byte]].get == SELF.id
@@ -52,7 +52,7 @@ Enjoy:
 
   def sellerOrder(
     sellerParty: Party,
-    tokenId: Coll[Byte],
+    token: TokenInfo,
     tokenAmount: Long,
     ergAmount: Long
   ) = {
@@ -73,12 +73,12 @@ Enjoy:
 
     val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
       toSpend       = MinErg,
-      tokensToSpend = List(tokenId -> tokenAmount)
+      tokensToSpend = List(token -> tokenAmount)
     )
 
     val sellerAskBox = Box(
       value  = MinErg,
-      token  = (tokenId -> tokenAmount),
+      token  = (token -> tokenAmount),
       script = SellerContract
     )
 
@@ -94,7 +94,7 @@ Enjoy:
 
     val blockchainSim = newBlockChainSimulationScenario("Swap")
 
-    val tokenId = newTokenId
+    val token = newToken("TKN")
 
     val buyerParty          = blockchainSim.newParty("buyer")
     val buyerBidTokenAmount = 100
@@ -105,7 +105,7 @@ Enjoy:
     val buyOrderTransaction =
       buyerOrder(
         buyerParty,
-        tokenId,
+        token,
         buyerBidTokenAmount,
         buyersBidNanoErgs
       )
@@ -120,13 +120,13 @@ Enjoy:
 
     sellerParty.generateUnspentBoxes(
       toSpend       = MinErg,
-      tokensToSpend = List(tokenId -> sellerAskTokenAmount)
+      tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
     val sellOrderTransaction =
       sellerOrder(
         sellerParty,
-        tokenId,
+        token,
         sellerAskTokenAmount,
         sellerAskNanoErgs
       )
@@ -144,7 +144,7 @@ Enjoy:
 
     val buyerOutBox = Box(
       value    = MinErg,
-      token    = (tokenId -> buyerBidTokenAmount),
+      token    = (token -> buyerBidTokenAmount),
       register = (R4 -> buyOrderTransactionSigned.outputs(0).id),
       script   = contract(buyerParty.wallet.getAddress.pubKey)
     )
@@ -176,12 +176,12 @@ Enjoy:
     val buyersBidNanoErgs   = 100000000
 
     buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
-    val tokenId = newTokenId
+    val token = newToken("TKN")
 
     val buyOrderTransaction =
       buyerOrder(
         buyerParty,
-        tokenId,
+        token,
         buyerBidTokenAmount,
         buyersBidNanoErgs
       )
@@ -191,7 +191,7 @@ Enjoy:
     val buyerRefundBox =
       Box(
         value  = buyersBidNanoErgs,
-        token  = (newTokenId -> 1L),
+        token  = (newToken("DEXCNCL") -> 1L),
         script = contract(buyerParty.wallet.getAddress.pubKey)
       )
 
@@ -211,20 +211,20 @@ Enjoy:
 
     val blockchainSim = newBlockChainSimulationScenario("Refund sell order")
 
-    val tokenId              = newTokenId
+    val token                = newToken("TKN")
     val sellerParty          = blockchainSim.newParty("seller")
     val sellerAskNanoErgs    = 50000000
     val sellerAskTokenAmount = 100L
 
     sellerParty.generateUnspentBoxes(
       toSpend       = MinErg,
-      tokensToSpend = List(tokenId -> sellerAskTokenAmount)
+      tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
     val sellOrderTransaction =
       sellerOrder(
         sellerParty,
-        tokenId,
+        token,
         sellerAskTokenAmount,
         sellerAskNanoErgs
       )
@@ -235,7 +235,7 @@ Enjoy:
     val sellerRefundBox =
       Box(
         value  = MinErg,
-        token  = (tokenId -> sellerAskTokenAmount),
+        token  = (token -> sellerAskTokenAmount),
         script = contract(sellerParty.wallet.getAddress.pubKey)
       )
 

@@ -3,7 +3,8 @@ package org.ergoplatform.playgroundenv.dsl
 import org.ergoplatform.ErgoBox.TokenId
 import org.ergoplatform.playgroundenv.models.{
   BlockchainSimulation,
-  NaiveBlockchainSimulation
+  NaiveBlockchainSimulation,
+  TokenInfo
 }
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval.CSigmaProp
@@ -19,7 +20,7 @@ trait GeneratorsDsl {
     NaiveBlockchainSimulation(scenarioName)
   }
 
-  def newTokenId: Coll[Byte] = ObjectGenerators.newErgoId
+  def newToken(name: String): TokenInfo = TokenInfo(ObjectGenerators.newErgoId, name)
 }
 
 object ObjectGenerators {

@@ -7,7 +7,7 @@ import special.collection.Coll
 
 case class OutBoxCandidate(
   value: Long,
-  tokens: List[TokenInfo],
+  tokens: List[TokenAmount],
   registers: List[(NonMandatoryRegisterId, Any)],
   script: ErgoTree
 ) {}
@@ -24,7 +24,7 @@ object OutBoxCandidate {
 case class OutBox(
   id: Coll[Byte],
   value: Long,
-  tokens: List[TokenInfo],
+  tokens: List[TokenAmount],
   registers: List[(NonMandatoryRegisterId, Any)],
   script: ErgoTree
 ) {}

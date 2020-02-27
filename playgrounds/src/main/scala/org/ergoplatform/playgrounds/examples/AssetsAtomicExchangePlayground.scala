@@ -6,7 +6,7 @@ object AssetsAtomicExchangePlayground {
 
   def buyerOrder(
     buyerParty: Party,
-    tokenId: Coll[Byte],
+    token: TokenInfo,
     tokenAmount: Long,
     ergAmount: Long
   ) = {
@@ -18,7 +18,7 @@ object AssetsAtomicExchangePlayground {
         (OUTPUTS.nonEmpty && OUTPUTS(0).R4[Coll[Byte]].isDefined) && {
           val tokens = OUTPUTS(0).tokens
           val tokenDataCorrect = tokens.nonEmpty &&
-            tokens(0)._1 == tokenId &&
+            tokens(0)._1 == token.tokenId &&
             tokens(0)._2 >= tokenAmount
 
           val knownId = OUTPUTS(0).R4[Coll[Byte]].get == SELF.id
@@ -39,7 +39,7 @@ object AssetsAtomicExchangePlayground {
 
   def sellerOrder(
     sellerParty: Party,
-    tokenId: Coll[Byte],
+    token: TokenInfo,
     tokenAmount: Long,
     ergAmount: Long
   ) = {
@@ -60,12 +60,12 @@ object AssetsAtomicExchangePlayground {
 
     val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
       toSpend       = MinErg,
-      tokensToSpend = List(tokenId -> tokenAmount)
+      tokensToSpend = List(token -> tokenAmount)
     )
 
     val sellerAskBox = Box(
       value  = MinErg,
-      token  = (tokenId -> tokenAmount),
+      token  = (token -> tokenAmount),
       script = SellerContract
     )
 
@@ -81,7 +81,7 @@ object AssetsAtomicExchangePlayground {
 
     val blockchainSim = newBlockChainSimulationScenario("Swap")
 
-    val tokenId = newTokenId
+    val token = newToken("TKN")
 
     val buyerParty          = blockchainSim.newParty("buyer")
     val buyerBidTokenAmount = 100
@@ -92,7 +92,7 @@ object AssetsAtomicExchangePlayground {
     val buyOrderTransaction =
       buyerOrder(
         buyerParty,
-        tokenId,
+        token,
         buyerBidTokenAmount,
         buyersBidNanoErgs
       )
@@ -107,13 +107,13 @@ object AssetsAtomicExchangePlayground {
 
     sellerParty.generateUnspentBoxes(
       toSpend       = MinErg,
-      tokensToSpend = List(tokenId -> sellerAskTokenAmount)
+      tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
     val sellOrderTransaction =
       sellerOrder(
         sellerParty,
-        tokenId,
+        token,
         sellerAskTokenAmount,
         sellerAskNanoErgs
       )
@@ -131,7 +131,7 @@ object AssetsAtomicExchangePlayground {
 
     val buyerOutBox = Box(
       value    = MinErg,
-      token    = (tokenId -> buyerBidTokenAmount),
+      token    = (token -> buyerBidTokenAmount),
       register = (R4 -> buyOrderTransactionSigned.outputs(0).id),
       script   = contract(buyerParty.wallet.getAddress.pubKey)
     )
@@ -163,12 +163,12 @@ object AssetsAtomicExchangePlayground {
     val buyersBidNanoErgs   = 100000000
 
     buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
-    val tokenId = newTokenId
+    val token = newToken("TKN")
 
     val buyOrderTransaction =
       buyerOrder(
         buyerParty,
-        tokenId,
+        token,
         buyerBidTokenAmount,
         buyersBidNanoErgs
       )
@@ -178,7 +178,7 @@ object AssetsAtomicExchangePlayground {
     val buyerRefundBox =
       Box(
         value  = buyersBidNanoErgs,
-        token  = (newTokenId -> 1L),
+        token  = (newToken("DEXCNCL") -> 1L),
         script = contract(buyerParty.wallet.getAddress.pubKey)
       )
 
@@ -198,20 +198,20 @@ object AssetsAtomicExchangePlayground {
 
     val blockchainSim = newBlockChainSimulationScenario("Refund sell order")
 
-    val tokenId              = newTokenId
+    val token                = newToken("TKN")
     val sellerParty          = blockchainSim.newParty("seller")
     val sellerAskNanoErgs    = 50000000
     val sellerAskTokenAmount = 100L
 
     sellerParty.generateUnspentBoxes(
       toSpend       = MinErg,
-      tokensToSpend = List(tokenId -> sellerAskTokenAmount)
+      tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
     val sellOrderTransaction =
       sellerOrder(
         sellerParty,
-        tokenId,
+        token,
         sellerAskTokenAmount,
         sellerAskNanoErgs
       )
@@ -222,7 +222,7 @@ object AssetsAtomicExchangePlayground {
     val sellerRefundBox =
       Box(
         value  = MinErg,
-        token  = (tokenId -> sellerAskTokenAmount),
+        token  = (token -> sellerAskTokenAmount),
         script = contract(sellerParty.wallet.getAddress.pubKey)
       )
 
