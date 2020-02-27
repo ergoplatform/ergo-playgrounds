@@ -2,5 +2,5 @@ package org.ergoplatform.playgroundenv.models
 
 trait BlockchainContext {}
 
-case class DummyBlockchainContext(blockchain: BlockchainSimulation)
+case class DummyBlockchainContextImpl(blockchain: BlockchainSimulation)
   extends BlockchainContext {}

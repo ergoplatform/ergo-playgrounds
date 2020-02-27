@@ -3,7 +3,7 @@ package org.ergoplatform.playgroundenv.dsl
 import org.ergoplatform.ErgoBox.TokenId
 import org.ergoplatform.playgroundenv.models.{
   BlockchainSimulation,
-  NaiveBlockchainSimulation,
+  DummyBlockchainSimulationImpl,
   TokenInfo
 }
 import sigmastate.basics.DLogProtocol.ProveDlog
@@ -17,7 +17,7 @@ trait GeneratorsDsl {
 
   def newBlockChainSimulationScenario(scenarioName: String): BlockchainSimulation = {
     println(s"Creating scenario: $scenarioName")
-    NaiveBlockchainSimulation(scenarioName)
+    DummyBlockchainSimulationImpl(scenarioName)
   }
 
   def newToken(name: String): TokenInfo = TokenInfo(ObjectGenerators.newErgoId, name)

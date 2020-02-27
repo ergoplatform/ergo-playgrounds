@@ -19,13 +19,14 @@ trait BlockchainSimulation {
   def send(tx: SignedTransaction): Unit
 }
 
-case class NaiveBlockchainSimulation(scenarioName: String) extends BlockchainSimulation {
+case class DummyBlockchainSimulationImpl(scenarioName: String)
+  extends BlockchainSimulation {
 
-  val context: BlockchainContext = DummyBlockchainContext(this)
+  val context: BlockchainContext = DummyBlockchainContextImpl(this)
 
   override def newParty(name: String): Party = {
     println(s"..$scenarioName: Creating new party: $name")
-    NaiveParty(this, name)
+    DummyPartyImpl(this, name)
   }
 
   override def send(tx: SignedTransaction): Unit =

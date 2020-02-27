@@ -21,11 +21,11 @@ trait Party {
   def printUnspentAssets(): Unit
 }
 
-class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
+class DummyPartyImpl(blockchain: BlockchainSimulation, override val name: String)
   extends Party {
 
   override def wallet: Wallet =
-    NaiveWallet(blockchain.context, ObjectGenerators.newSigmaProp, s"$name Wallet")
+    DummyWalletImpl(blockchain.context, ObjectGenerators.newSigmaProp, s"$name Wallet")
 
   override def generateUnspentBoxes(
     toSpend: Long,
@@ -52,8 +52,8 @@ class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
 
 }
 
-object NaiveParty {
+object DummyPartyImpl {
 
-  def apply(blockchain: BlockchainSimulation, name: String): NaiveParty =
-    new NaiveParty(blockchain, name)
+  def apply(blockchain: BlockchainSimulation, name: String): DummyPartyImpl =
+    new DummyPartyImpl(blockchain, name)
 }
