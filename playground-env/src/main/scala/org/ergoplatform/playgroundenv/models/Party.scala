@@ -25,7 +25,7 @@ class DummyPartyImpl(blockchain: BlockchainSimulation, override val name: String
   extends Party {
 
   override def wallet: Wallet =
-    DummyWalletImpl(blockchain.context, ObjectGenerators.newSigmaProp, s"$name Wallet")
+    DummyWalletImpl(blockchain.context, s"$name Wallet")
 
   override def generateUnspentBoxes(
     toSpend: Long,
