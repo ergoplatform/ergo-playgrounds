@@ -1,12 +1,13 @@
 package org.ergoplatform.playgroundenv.models
 
 import org.ergoplatform.ErgoBox
+import org.ergoplatform.ErgoBox.BoxId
 import org.ergoplatform.compiler.ErgoContract
 import scorex.util.ModifierId
 import sigmastate.Values.{ErgoTree, SValue, SigmaPropValue}
 
 case class InputBox(
-  id: ModifierId,
+  id: BoxId,
   value: Long,
   tokens: List[TokenAmount],
   script: ErgoTree

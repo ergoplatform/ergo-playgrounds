@@ -17,7 +17,7 @@ import scala.language.implicitConversions
 trait BoxDsl extends TypesDsl {
 
   implicit def outBoxToInputBox(in: OutBox): InputBox =
-    InputBox(in.value, in.tokens, in.script)
+    InputBox(in.id, in.value, in.tokens, in.script)
 
   implicit class ListOps(l: List[InputBox]) {
     def totalValue: Long       = l.map(_.value).sum

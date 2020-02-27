@@ -1,6 +1,6 @@
 package org.ergoplatform.playgroundenv.models
 
-import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
+import org.ergoplatform.ErgoBox.{BoxId, NonMandatoryRegisterId}
 import org.ergoplatform.ErgoBoxCandidate
 import org.ergoplatform.compiler.ErgoContract
 import sigmastate.Values.ErgoTree
@@ -29,7 +29,7 @@ object OutBoxCandidate {
 }
 
 case class OutBox(
-  id: Coll[Byte],
+  id: BoxId,
   value: Long,
   tokens: List[TokenAmount],
   registers: List[(NonMandatoryRegisterId, Any)],

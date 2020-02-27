@@ -96,18 +96,15 @@ class DummyWalletImpl(ctx: BlockchainContext, override val name: String) extends
     val prover    = new AppkitProvingInterpreter(dlogs, dhtInputs, parameters)
 
     val inputs = tx.inputs.map { ib =>
-      new UnsignedInput(ADKey @@ ib.id.toBytes)
+      new UnsignedInput(ib.id)
     }.toIndexedSeq
     val outBoxCandidates = tx.outputs.map(_.toErgoBoxCandidate).toIndexedSeq
     val unsignedTx       = UnsignedErgoLikeTransaction(inputs, outBoxCandidates)
     val boxesToSpend     = tx.inputs.map(_.toErgoBox(0)).toIndexedSeq
-    prover.sign(unsignedTx, boxesToSpend, IndexedSeq(), stateContext)
+    val signedTx         = prover.sign(unsignedTx, boxesToSpend, IndexedSeq(), stateContext).get
 
-    val id = ObjectGenerators.newErgoId
-    val outs = tx.outputs.map { b =>
-      OutBox(id, b.value, b.tokens, b.registers, b.script)
-    }
-    SignedTransaction(id, tx.inputs, outs)
+    // TODO:
+    signedTx
   }
 }
 
