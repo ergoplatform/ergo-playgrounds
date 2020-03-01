@@ -175,6 +175,8 @@ object AssetsAtomicExchangePlayground {
 
     val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
 
+    blockchainSim.send(buyOrderTransactionSigned)
+
     val buyerRefundBox =
       Box(
         value  = buyersBidNanoErgs,

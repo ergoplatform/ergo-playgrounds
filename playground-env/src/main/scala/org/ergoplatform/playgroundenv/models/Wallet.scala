@@ -1,7 +1,6 @@
 package org.ergoplatform.playgroundenv.models
 
-import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
-import special.sigma.SigmaProp
+import org.ergoplatform.{ErgoLikeTransaction, UnsignedErgoLikeTransaction}
 
 trait Wallet {
 
@@ -9,6 +8,6 @@ trait Wallet {
 
   def getAddress: Address
 
-  def sign(tx: UnsignedTransaction): SignedTransaction
+  def sign(tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction
 
 }

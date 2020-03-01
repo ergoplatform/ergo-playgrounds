@@ -6,12 +6,8 @@ import org.ergoplatform.playgroundenv.models.{
   DummyBlockchainSimulationImpl,
   TokenInfo
 }
-import sigmastate.basics.DLogProtocol.ProveDlog
-import sigmastate.eval.CSigmaProp
 import sigmastate.eval.Extensions.ArrayOps
-import sigmastate.interpreter.CryptoConstants
 import special.collection.Coll
-import special.sigma.SigmaProp
 
 trait GeneratorsDsl {
 
@@ -27,8 +23,5 @@ object ObjectGenerators {
 
   def newErgoId: Coll[Byte] =
     Array.fill(TokenId.size)((scala.util.Random.nextInt(256) - 128).toByte).toColl
-
-  def newSigmaProp: SigmaProp =
-    CSigmaProp(ProveDlog(CryptoConstants.dlogGroup.createRandomElement()))
 
 }
