@@ -11,7 +11,7 @@ Enjoy:
 ## Example:
 ### Assets Atomic Exchange (DEX) contract
 
-[Run in Scastie](https://scastie.scala-lang.org/greenhat/T2jSEv11QcWpXX1XrcHUdw/49)
+[Run in Scastie](https://scastie.scala-lang.org/m1aaAz6aQbC2TygIhOfjSg)
 
 ```scala
   import org.ergoplatform.compiler.ErgoScalaCompiler._
@@ -43,7 +43,7 @@ Enjoy:
     val buyerBidBox = Box(value = ergAmount, script = BuyerContract)
 
     Transaction(
-      inputs       = buyerParty.selectUnspentBoxes(toSpend = ergAmount),
+      inputs       = buyerParty.selectUnspentBoxes(toSpend = ergAmount + MinTxFee),
       outputs      = List(buyerBidBox),
       fee          = MinTxFee,
       sendChangeTo = contract(buyerPk)
@@ -100,7 +100,7 @@ Enjoy:
     val buyerBidTokenAmount = 100
     val buyersBidNanoErgs   = 100000000
 
-    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs + MinTxFee)
 
     val buyOrderTransaction =
       buyerOrder(
@@ -119,7 +119,7 @@ Enjoy:
     val sellerAskTokenAmount = 100L
 
     sellerParty.generateUnspentBoxes(
-      toSpend       = MinErg,
+      toSpend       = MinErg + MinTxFee,
       tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
@@ -175,7 +175,7 @@ Enjoy:
     val buyerBidTokenAmount = 100
     val buyersBidNanoErgs   = 100000000
 
-    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs + MinTxFee)
     val token = newToken("TKN")
 
     val buyOrderTransaction =
@@ -187,6 +187,8 @@ Enjoy:
       )
 
     val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
+
+    blockchainSim.send(buyOrderTransactionSigned)
 
     val buyerRefundBox =
       Box(
@@ -217,7 +219,7 @@ Enjoy:
     val sellerAskTokenAmount = 100L
 
     sellerParty.generateUnspentBoxes(
-      toSpend       = MinErg,
+      toSpend       = MinErg + MinTxFee,
       tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 

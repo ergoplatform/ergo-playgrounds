@@ -1,7 +1,6 @@
 package org.ergoplatform.playgroundenv.models
 
-import org.ergoplatform.compiler.ErgoScalaCompiler
-import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
+import org.ergoplatform.ErgoBox
 
 trait Party {
 
@@ -16,44 +15,7 @@ trait Party {
   def selectUnspentBoxes(
     toSpend: Long,
     tokensToSpend: List[TokenAmount] = List()
-  ): List[InputBox]
+  ): List[ErgoBox]
 
   def printUnspentAssets(): Unit
-}
-
-class NaiveParty(blockchain: BlockchainSimulation, override val name: String)
-  extends Party {
-
-  override def wallet: Wallet =
-    NaiveWallet(blockchain.context, ObjectGenerators.newSigmaProp, s"$name Wallet")
-
-  override def generateUnspentBoxes(
-    toSpend: Long,
-    tokensToSpend: List[TokenAmount]
-  ): Unit =
-    println(
-      s"....$name: Generating unspent boxes for $toSpend nanoERGs and tokens: $tokensToSpend"
-    )
-
-  override def selectUnspentBoxes(
-    toSpend: Long,
-    tokensToSpend: List[TokenAmount]
-  ): List[InputBox] =
-    List(
-      InputBox(
-        toSpend,
-        tokensToSpend,
-        ErgoScalaCompiler.contract(wallet.getAddress.pubKey).ergoTree
-      )
-    )
-
-  override def printUnspentAssets(): Unit =
-    println(s"....$name: Unspent coins: XXX nanoERGs; tokens: (tokenName -> tokenAmount)")
-
-}
-
-object NaiveParty {
-
-  def apply(blockchain: BlockchainSimulation, name: String): NaiveParty =
-    new NaiveParty(blockchain, name)
 }

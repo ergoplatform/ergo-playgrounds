@@ -2,7 +2,7 @@ import scala.language.postfixOps
 
 lazy val commonSettings = Seq(
   scalacOptions ++= commonScalacOptions,
-  scalaVersion := "2.12.9",
+  scalaVersion := "2.12.10",
   organization := "org.ergoplatform",
   resolvers += Resolver.sonatypeRepo("public"),
   licenses := Seq("CC0" -> url("https://creativecommons.org/publicdomain/zero/1.0/legalcode")),
@@ -27,7 +27,8 @@ dynverSeparator in ThisBuild := "-"
 lazy val allConfigDependency = "compile->compile;test->test"
 
 lazy val dependencies = Seq(
-  "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-32-aaadbee1-SNAPSHOT"
+  "org.ergoplatform" %% "ergo-scala-compiler" % "0.0.0-32-aaadbee1-SNAPSHOT",
+  "org.ergoplatform" %% "ergo-appkit" % "develop-d77acfb8-SNAPSHOT"
 )
 
 lazy val testingDependencies = Seq(

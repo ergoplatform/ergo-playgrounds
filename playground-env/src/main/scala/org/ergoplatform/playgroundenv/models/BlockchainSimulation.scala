@@ -1,6 +1,18 @@
 package org.ergoplatform.playgroundenv.models
 
-import special.sigma.SigmaProp
+import org.ergoplatform.ErgoBox.BoxId
+import org.ergoplatform.compiler.ErgoScalaCompiler
+import org.ergoplatform.wallet.protocol.context.{ErgoLikeParameters, ErgoLikeStateContext}
+import org.ergoplatform.{ErgoBox, ErgoLikeTransaction}
+import scorex.crypto.authds.ADDigest
+import scorex.crypto.hash.Digest32
+import scorex.util.encode.Base16
+import sigmastate.eval.{CGroupElement, CPreHeader, Colls}
+import sigmastate.interpreter.CryptoConstants
+import special.collection.Coll
+import special.sigma.{Header, PreHeader, SigmaProp}
+
+import scala.collection.mutable
 
 case class PKBlockchainStats(
   pk: SigmaProp,
@@ -12,22 +24,7 @@ case class PKBlockchainStats(
 
 trait BlockchainSimulation {
 
-  def context: BlockchainContext
-
   def newParty(name: String): Party
 
-  def send(tx: SignedTransaction): Unit
-}
-
-case class NaiveBlockchainSimulation(scenarioName: String) extends BlockchainSimulation {
-
-  val context: BlockchainContext = DummyBlockchainContext(this)
-
-  override def newParty(name: String): Party = {
-    println(s"..$scenarioName: Creating new party: $name")
-    NaiveParty(this, name)
-  }
-
-  override def send(tx: SignedTransaction): Unit =
-    println(s"..$scenarioName: Accepting transaction ShortTxDesc to the blockchain")
+  def send(tx: ErgoLikeTransaction): Unit
 }

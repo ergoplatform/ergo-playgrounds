@@ -40,3 +40,8 @@ ergo-tests/
 spam-tests/
 
 .stainless-cache/
+
+.bloop/
+.metals/
+project/metals.sbt
+.vscode/

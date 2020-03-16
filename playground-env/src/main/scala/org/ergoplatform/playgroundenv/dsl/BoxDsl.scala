@@ -1,48 +1,64 @@
 package org.ergoplatform.playgroundenv.dsl
 
-import org.ergoplatform.ErgoBox
-import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
-import org.ergoplatform.compiler.ErgoContract
-import org.ergoplatform.playgroundenv.models.{
-  InputBox,
-  OutBox,
-  OutBoxCandidate,
-  TokenAmount,
-  TokenInfo
-}
-import sigmastate.Values.{SValue, SigmaPropValue}
+import org.ergoplatform.ErgoBox.{NonMandatoryRegisterId, TokenId}
+import org.ergoplatform.playgroundenv.models.TokenAmount
+import org.ergoplatform.{ErgoBox, ErgoBoxCandidate}
+import scorex.crypto.hash.Digest32
+import sigmastate.SType
+import sigmastate.Values.{ByteArrayConstant, EvaluatedValue}
+import sigmastate.eval.Extensions._
+import sigmastate.eval._
 
 import scala.language.implicitConversions
 
 trait BoxDsl extends TypesDsl {
 
-  implicit def outBoxToInputBox(in: OutBox): InputBox =
-    InputBox(in.value, in.tokens, in.script)
+  val R4 = ErgoBox.R4
+  val R5 = ErgoBox.R5
+  val R6 = ErgoBox.R6
+  val R7 = ErgoBox.R7
+  val R8 = ErgoBox.R8
+  val R9 = ErgoBox.R9
 
-  implicit class ListOps(l: List[InputBox]) {
-    def totalValue: Long       = l.map(_.value).sum
-    def totalTokenAmount: Long = l.map(_.value).sum
+  def Box(value: Long, script: ErgoContract): ErgoBoxCandidate =
+    new ErgoBoxCandidate(value, script.ergoTree, 0)
+
+  def Box(value: Long, token: TokenAmount, script: ErgoContract): ErgoBoxCandidate =
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      Array[(TokenId, Long)]((Digest32 @@ token.token.tokenId.toArray, token.tokenAmount)).toColl
+    )
+
+  private def liftVal[T](v: T): EvaluatedValue[SType] = v match {
+    case ba: Array[Byte] => ByteArrayConstant(ba)
   }
 
-  val R4 = ErgoBox.R4
-
-  def Box(value: Long, script: ErgoContract): OutBoxCandidate =
-    OutBoxCandidate(value, script)
-
-  def Box(value: Long, token: TokenAmount, script: ErgoContract): OutBoxCandidate =
-    OutBoxCandidate(value, List(token), List(), script.ergoTree)
-
-  def Box(
+  def Box[T](
     value: Long,
-    register: (NonMandatoryRegisterId, Any),
+    register: (NonMandatoryRegisterId, T),
     script: ErgoContract
-  ): OutBoxCandidate = OutBoxCandidate(value, List(), List(register), script.ergoTree)
+  ): ErgoBoxCandidate =
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      Array[(TokenId, Long)]().toColl,
+      Map((register._1, liftVal(register._2)))
+    )
 
   def Box(
     value: Long,
     token: (TokenInfo, Long),
     register: (NonMandatoryRegisterId, Any),
     script: ErgoContract
-  ): OutBoxCandidate =
-    OutBoxCandidate(value, List(token), List(register), script.ergoTree)
+  ): ErgoBoxCandidate =
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      Array[(TokenId, Long)]((Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
+      Map((register._1, liftVal(register._2)))
+    )
 }
