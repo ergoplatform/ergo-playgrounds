@@ -30,7 +30,7 @@ object AssetsAtomicExchangePlayground {
     val buyerBidBox = Box(value = ergAmount, script = BuyerContract)
 
     Transaction(
-      inputs       = buyerParty.selectUnspentBoxes(toSpend = ergAmount),
+      inputs       = buyerParty.selectUnspentBoxes(toSpend = ergAmount + MinTxFee),
       outputs      = List(buyerBidBox),
       fee          = MinTxFee,
       sendChangeTo = contract(buyerPk)
@@ -87,7 +87,7 @@ object AssetsAtomicExchangePlayground {
     val buyerBidTokenAmount = 100
     val buyersBidNanoErgs   = 100000000
 
-    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs + MinTxFee)
 
     val buyOrderTransaction =
       buyerOrder(
@@ -106,7 +106,7 @@ object AssetsAtomicExchangePlayground {
     val sellerAskTokenAmount = 100L
 
     sellerParty.generateUnspentBoxes(
-      toSpend       = MinErg,
+      toSpend       = MinErg + MinTxFee,
       tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
@@ -162,7 +162,7 @@ object AssetsAtomicExchangePlayground {
     val buyerBidTokenAmount = 100
     val buyersBidNanoErgs   = 100000000
 
-    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs)
+    buyerParty.generateUnspentBoxes(toSpend = buyersBidNanoErgs + MinTxFee)
     val token = newToken("TKN")
 
     val buyOrderTransaction =
@@ -206,7 +206,7 @@ object AssetsAtomicExchangePlayground {
     val sellerAskTokenAmount = 100L
 
     sellerParty.generateUnspentBoxes(
-      toSpend       = MinErg,
+      toSpend       = MinErg + MinTxFee,
       tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 

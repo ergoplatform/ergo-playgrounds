@@ -2,7 +2,7 @@ import scala.language.postfixOps
 
 lazy val commonSettings = Seq(
   scalacOptions ++= commonScalacOptions,
-  scalaVersion := "2.12.9",
+  scalaVersion := "2.12.10",
   organization := "org.ergoplatform",
   resolvers += Resolver.sonatypeRepo("public"),
   licenses := Seq("CC0" -> url("https://creativecommons.org/publicdomain/zero/1.0/legalcode")),

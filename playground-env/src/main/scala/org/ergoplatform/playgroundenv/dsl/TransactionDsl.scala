@@ -2,6 +2,7 @@ package org.ergoplatform.playgroundenv.dsl
 
 import org.ergoplatform.appkit.Parameters
 import org.ergoplatform._
+import org.ergoplatform.playgroundenv.utils.TransactionOperations
 
 trait TransactionDsl extends BoxDsl {
 
@@ -32,15 +33,17 @@ trait TransactionDsl extends BoxDsl {
     fee: Long,
     sendChangeTo: ErgoContract
   ): UnsignedErgoLikeTransaction = {
-    val feeBox = new ErgoBoxCandidate(
+    implicit val addressEncoder = ErgoAddressEncoder(
+      ErgoAddressEncoder.TestnetNetworkPrefix
+    )
+    TransactionOperations.buildUnsignedErgoTx(
+      inputs.toIndexedSeq,
+      IndexedSeq(),
+      outputs,
       fee,
-      ErgoScriptPredef.feeProposition(Parameters.MinerRewardDelay),
+      Pay2SHAddress(sendChangeTo.ergoTree),
       0
     )
-    val txinputs = inputs.map { ib =>
-      new UnsignedInput(ib.id)
-    }.toIndexedSeq
-    UnsignedErgoLikeTransaction(txinputs, (outputs ++ Seq(feeBox)).toIndexedSeq)
   }
 
 }
