@@ -14,7 +14,8 @@ class DummyPartyImpl(blockchain: DummyBlockchainSimulationImpl, override val nam
   ): Unit = {
     blockchain.generateUnspentBoxesFor(wallet.getAddress, toSpend, tokensToSpend)
     println(
-      s"....$name: Generating unspent boxes for $toSpend nanoERGs and tokens: $tokensToSpend"
+      s"....$name: Generating unspent boxes for $toSpend nanoERGs and tokens: ${TokenAmount
+        .prettyprintTokens(tokensToSpend)}"
     )
   }
 
@@ -24,8 +25,13 @@ class DummyPartyImpl(blockchain: DummyBlockchainSimulationImpl, override val nam
   ): List[ErgoBox] =
     blockchain.selectUnspentBoxesFor(wallet.getAddress, toSpend, tokensToSpend)
 
-  override def printUnspentAssets(): Unit =
-    println(s"....$name: Unspent coins: XXX nanoERGs; tokens: (tokenName -> tokenAmount)")
+  override def printUnspentAssets(): Unit = {
+    val coins  = blockchain.getUnspentCoinsFor(wallet.getAddress)
+    val tokens = blockchain.getUnspentTokensFor(wallet.getAddress)
+    println(
+      s"....$name: Unspent coins: $coins nanoERGs; tokens: ${TokenAmount.prettyprintTokens(tokens)}"
+    )
+  }
 
 }
 

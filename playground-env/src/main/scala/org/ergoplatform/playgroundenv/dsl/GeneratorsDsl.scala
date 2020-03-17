@@ -16,7 +16,6 @@ trait GeneratorsDsl {
     DummyBlockchainSimulationImpl(scenarioName)
   }
 
-  def newToken(name: String): TokenInfo = TokenInfo(ObjectGenerators.newErgoId, name)
 }
 
 object ObjectGenerators {

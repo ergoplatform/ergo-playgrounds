@@ -26,5 +26,7 @@ trait BlockchainSimulation {
 
   def newParty(name: String): Party
 
+  def newToken(name: String): TokenInfo
+
   def send(tx: ErgoLikeTransaction): Unit
 }

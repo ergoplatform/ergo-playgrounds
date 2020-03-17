@@ -16,7 +16,7 @@ object TransactionOperations {
     dataInputs: IndexedSeq[DataInput],
     outputCandidates: Seq[ErgoBoxCandidate],
     feeAmount: Long,
-    changeAddress: ErgoAddress,
+    changeAddress: Option[ErgoAddress],
     currentHeight: Int
   ): UnsignedErgoLikeTransaction = {
 
@@ -25,22 +25,29 @@ object TransactionOperations {
     val outputSum   = outputCandidates.map(_.value).sum
     val outputTotal = outputSum + feeAmount
     val changeAmt   = inputTotal - outputTotal
-    val noChange    = changeAmt < MinChangeValue
+    require(
+      changeAmt >= 0,
+      s"total inputs $inputTotal is less then total outputs $outputTotal"
+    )
+    val noChange = changeAmt < MinChangeValue
     // if computed changeAmt is too small give it to miner as tips
     val actualFee = if (noChange) feeAmount + changeAmt else feeAmount
     require(
       actualFee >= MinFee,
-      s"Fee must be greater then minimum amount ($MinFee NanoErg)"
+      s"Fee ($actualFee) must be greater then minimum amount ($MinFee NanoErg)"
     )
     val feeOut = new ErgoBoxCandidate(
       actualFee,
       ErgoScriptPredef.feeProposition(Parameters.MinerRewardDelay),
       currentHeight
     )
-    val changeOut =
-      new ErgoBoxCandidate(changeAmt, changeAddress.script, currentHeight)
 
-    val addedChangeOut = if (!noChange) Seq(changeOut) else Seq()
+    val addedChangeOut = if (!noChange) {
+      require(changeAddress.isDefined, s"change address is required for $changeAmt")
+      val changeOut =
+        new ErgoBoxCandidate(changeAmt, changeAddress.get.script, currentHeight)
+      Seq(changeOut)
+    } else Seq()
 
     val finalOutputCandidates = outputCandidates ++ Seq(feeOut) ++ addedChangeOut
 

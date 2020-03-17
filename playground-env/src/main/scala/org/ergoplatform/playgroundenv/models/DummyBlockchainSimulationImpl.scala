@@ -2,23 +2,31 @@ package org.ergoplatform.playgroundenv.models
 
 import org.ergoplatform.ErgoBox.BoxId
 import org.ergoplatform.{ErgoBox, ErgoLikeTransaction}
-import org.ergoplatform.compiler.ErgoScalaCompiler
+import org.ergoplatform.compiler.ErgoScalaCompiler._
 import org.ergoplatform.wallet.protocol.context.{ErgoLikeParameters, ErgoLikeStateContext}
 import scorex.crypto.authds.ADDigest
 import scorex.crypto.hash.Digest32
 import scorex.util.encode.Base16
+import scorex.util._
 import sigmastate.eval.{CGroupElement, CPreHeader, Colls}
 import sigmastate.interpreter.CryptoConstants
 import special.collection.Coll
 import special.sigma.{Header, PreHeader}
+import sigmastate.eval.Extensions._
 
 import scala.collection.mutable
+import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
 
 case class DummyBlockchainSimulationImpl(scenarioName: String)
   extends BlockchainSimulation {
 
-  private val boxes: mutable.ArrayBuffer[ErgoBox] =
-    new mutable.ArrayBuffer[ErgoBox]()
+  private var boxes: mutable.ArrayBuffer[ErgoBox]         = new mutable.ArrayBuffer[ErgoBox]()
+  private val tokenNames: mutable.Map[ModifierId, String] = mutable.Map()
+
+  private def getUnspentBoxesFor(address: Address): List[ErgoBox] =
+    boxes.filter { b =>
+      contract(address.pubKey).ergoTree == b.ergoTree
+    }.toList
 
   val stateContext: ErgoLikeStateContext = new ErgoLikeStateContext {
 
@@ -70,26 +78,31 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
     address: Address,
     toSpend: Long,
     tokensToSpend: List[TokenAmount]
-  ): Unit =
+  ): Unit = {
+    tokensToSpend.foreach { t =>
+      tokenNames += (t.token.tokenId.toArray.toModifierId -> t.token.tokenName)
+    }
     boxes.append(
       ErgoBox(
         value          = toSpend,
-        ergoTree       = ErgoScalaCompiler.contract(address.pubKey).ergoTree,
+        ergoTree       = contract(address.pubKey).ergoTree,
         creationHeight = 0,
         additionalTokens =
           tokensToSpend.map(ta => (Digest32 @@ ta.token.tokenId.toArray, ta.tokenAmount))
       )
     )
+  }
 
   def selectUnspentBoxesFor(
     address: Address,
     toSpend: Long,
     tokensToSpend: List[TokenAmount]
   ): List[ErgoBox] = {
-    val treeToFind = ErgoScalaCompiler.contract(address.pubKey).ergoTree
-    boxes.filter { b =>
+    val treeToFind = contract(address.pubKey).ergoTree
+    val filtered = boxes.filter { b =>
       b.ergoTree == treeToFind
     }.toList
+    filtered
   }
 
   def getBox(id: BoxId): ErgoBox =
@@ -101,7 +114,29 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
   }
 
   override def send(tx: ErgoLikeTransaction): Unit = {
-    boxes.appendAll(tx.outputs)
+    val newBoxes: mutable.ArrayBuffer[ErgoBox] = new mutable.ArrayBuffer[ErgoBox]()
+    newBoxes.appendAll(tx.outputs)
+    newBoxes.appendAll(
+      boxes.filterNot(b => tx.inputs.map(_.boxId.toModifierId).contains(b.id.toModifierId)
+      )
+    )
+    boxes = newBoxes
     println(s"..$scenarioName: Accepting transaction ShortTxDesc to the blockchain")
   }
+
+  override def newToken(name: String): TokenInfo = {
+    val tokenId = ObjectGenerators.newErgoId
+    tokenNames += (tokenId.toArray.toModifierId -> name)
+    TokenInfo(tokenId, name)
+  }
+
+  def getUnspentCoinsFor(address: Address): Long =
+    getUnspentBoxesFor(address).map(_.value).sum
+
+  def getUnspentTokensFor(address: Address): List[TokenAmount] =
+    getUnspentBoxesFor(address).flatMap { b =>
+      b.additionalTokens.toArray.map { t =>
+        TokenAmount(TokenInfo(t._1.toColl, tokenNames(t._1.toModifierId)), t._2)
+      }
+    }
 }
