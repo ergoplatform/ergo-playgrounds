@@ -18,9 +18,7 @@ class DummyWalletImpl(
     ExtendedSecretKey.deriveMasterKey(seed)
   }
 
-  val pk: CSigmaProp = CSigmaProp(masterKey.publicKey.key)
-
-  override val getAddress: Address = Address(pk)
+  override val getAddress: Address = Address(masterKey.publicKey.key)
 
   override def sign(tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction = {
     println(s"......$name: Signing transaction ShortTxDesc")
