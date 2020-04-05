@@ -23,8 +23,8 @@ object DEXPlayground {
 
     val buyerScript = s"""pkA || {
       |
-      |  val outIdx = getVar[Short](127).get
-      |  val out = OUTPUTS(outIdx)
+      |  // val outIdx = getVar[Short](127).get
+      |  val out = OUTPUTS(0)
       |  val tokenData = out.R2[Coll[(Coll[Byte], Long)]].get(0)
       |  val tokenId = tokenData._1
       |  val tokenValue = tokenData._2
@@ -68,8 +68,8 @@ object DEXPlayground {
     val sellerContractEnv: ScriptEnv = Map("pkB" -> sellerPk, "token1" -> token.tokenId)
 
     val sellerScript = s""" pkB || {
-      |   val outIdx = getVar[Short](127).get
-      |   val out = OUTPUTS(outIdx)
+      |   // val outIdx = getVar[Short](127).get
+      |   val out = OUTPUTS(1)
       |
       |   val tokenData = out.R2[Coll[(Coll[Byte], Long)]].get(0)
       |   val tokenId = tokenData._1
