@@ -13,7 +13,8 @@ object DEXPlayground {
     tokenAmount: Long,
     tokenPrice: Long,
     dexFee: Long,
-    txFee: Long
+    txFee: Long,
+    swapBoxValue: Long
   ) = {
 
     val buyerPk = buyerParty.wallet.getAddress.pubKey
@@ -40,9 +41,9 @@ object DEXPlayground {
       |}
       """.stripMargin
 
-    val ergAmount = tokenPrice * tokenAmount + dexFee
+    val ergAmount = tokenPrice * tokenAmount + dexFee + swapBoxValue
 
-    val buyerContract = ErgoScriptCompiler.compile(buyerScript, buyerContractEnv)
+    val buyerContract = ErgoScriptCompiler.compile(buyerContractEnv, buyerScript)
     val buyerBidBox   = Box(value = ergAmount, script = buyerContract)
 
     Transaction(
@@ -93,7 +94,7 @@ object DEXPlayground {
       |   ))
       | }""".stripMargin
 
-    val sellerContract = ErgoScriptCompiler.compile(sellerScript, sellerContractEnv)
+    val sellerContract = ErgoScriptCompiler.compile(sellerContractEnv, sellerScript)
     val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
       toSpend       = dexFee + txFee,
       tokensToSpend = List(token -> tokenAmount)
@@ -139,7 +140,8 @@ object DEXPlayground {
         buyerBidTokenAmount,
         buyersBidTokenPrice,
         buyerDexFee,
-        buyOrderTxFee
+        buyOrderTxFee,
+        buyerSwapBoxValue
       )
 
     // TODO: pass context extension
