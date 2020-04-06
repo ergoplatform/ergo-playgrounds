@@ -16,12 +16,11 @@ object DEXPlayground {
 
     val buyerPk = buyerParty.wallet.getAddress.pubKey
 
-    val buyerContractEnv: ScriptEnv = Map("pkA" -> buyerPk, "tokenId" -> token.tokenId)
+    val buyerContractEnv: ScriptEnv =
+      Map("buyerPk" -> buyerPk, "tokenId" -> token.tokenId)
 
-    // TODO: check for return box (with tokens) and new buy order box
-    // TODO: check dex fee taken is proportional to matched part of the order
     println(s"buyerPk: $buyerPk")
-    val buyerScript = s"""pkA || {
+    val buyerScript = s"""buyerPk || {
       |
       |  val returnBoxIdx = 0 // getVar[Short](127).get
       |  val returnBox = OUTPUTS(0)
@@ -35,7 +34,7 @@ object DEXPlayground {
       |  val tokenPrice = $tokenPrice
       |  val dexFeePerToken = $dexFeePerToken
       |
-      |  val iCanSpendReturnBox = returnBox.propositionBytes == pkA.propBytes
+      |  val iCanSpendReturnBox = returnBox.propositionBytes == buyerPk.propBytes
       |  val returnBoxRefsMe = returnBox.R4[Coll[Byte]].get == SELF.id
       |  val tokenIdIsCorrect = returnTokenId == tokenId
       |
@@ -62,55 +61,58 @@ object DEXPlayground {
     ErgoScriptCompiler.compile(buyerContractEnv, buyerScript)
   }
 
-  def sellerOrder(
+  def sellerOrderContract(
     sellerParty: Party,
     token: TokenInfo,
-    tokenAmount: Long,
     tokenPrice: Long,
-    dexFee: Long
+    dexFeePerToken: Long
   ) = {
 
     val sellerPk = sellerParty.wallet.getAddress.pubKey
 
     println(s"sellerPk: $sellerPk")
-    val sellerContractEnv: ScriptEnv = Map("pkB" -> sellerPk, "token1" -> token.tokenId)
+    val sellerContractEnv: ScriptEnv =
+      Map("sellerPk" -> sellerPk, "tokenId" -> token.tokenId)
 
-    val sellerScript = s""" pkB || {
+    val sellerScript = s""" sellerPk || {
       |   // val outIdx = getVar[Short](127).get
-      |   val out = OUTPUTS(1)
+      |  val returnBox = OUTPUTS(0)
+      |  
+      |  val newOrderBoxId = 1
+      |  val newOrderBox = OUTPUTS(0)
+      |  val newOrderTokenData = newOrderBox.tokens(0)
+      |  val newOrderTokenId = newOrderTokenData._1
+      |  val newOrderTokenAmount = newOrderTokenData._2
+      |  
+      |  val tokenPrice = $tokenPrice
+      |  val dexFeePerToken = $dexFeePerToken
       |
-      |   val tokenData = out.tokens(0)
-      |   val tokenId = tokenData._1
-      |   val tokenValue = tokenData._2
+      |  val iCanSpendReturnBox = returnBox.propositionBytes == sellerPk.propBytes
+      |  val returnBoxRefsMe = returnBox.R4[Coll[Byte]].get == SELF.id
+      |  val tokenIdIsCorrect = newOrderTokenId == tokenId
       |
-      |   val selfTokenData = SELF.tokens(0)
-      |   val selfTokenId = selfTokenData._1
-      |   val selfTokenValue = selfTokenData._2
+      |  val selfTokenAmount = SELF.tokens(0)._2
+      |  val soldTokenAmount = selfTokenAmount - newOrderTokenAmount
+      |  val minSoldTokenErgValue = soldTokenAmount * tokenPrice
       |
-      |   val selfValue = SELF.value
-      |   val outValue = out.value
+      |  val expectedDexFee = dexFeePerToken * soldTokenAmount
+      |  val newOrderBoxValueIsCorrect = newOrderBox.value >= (SELF.value - minSoldTokenErgValue - expectedDexFee)
       |
-      |   val sold = selfTokenValue - tokenValue
+      |  val newOrderBoxRefsMe = newOrderBox.R4[Coll[Byte]].get == SELF.id
+      |  val newOrderBoxContractIsCorrect = SELF.propositionBytes == newOrderBox.propositionBytes
       |
-      |   val price = $tokenPrice
-      |   
-      |   // val isTotalMatch = out.tokens.size == 0 && outValue >= selfTokenAmount * price  
-      |   // val isPartialMatch = out.tokens.size == 1 && out.tokens(0)._1 == selfTokenId && out.tokens(0)._2 >= outValue
-      |
-      |   allOf(Coll(
-      |        sold >= 1,
-      |        (outValue - selfValue) >= sold*price,
-      |        out.R4[Coll[Byte]].get == SELF.id,
-      |        out.propositionBytes == pkB.propBytes
-      |   ))
+      |  allOf(Coll(
+      |      tokenIdIsCorrect,
+      |      soldTokenAmount >= 1,
+      |      iCanSpendReturnBox,
+      |      returnBoxRefsMe,
+      |      newOrderBoxRefsMe,
+      |      newOrderBoxValueIsCorrect,
+      |      newOrderBoxContractIsCorrect
+      |  ))
       | }""".stripMargin
 
-    val sellerContract = ErgoScriptCompiler.compile(sellerContractEnv, sellerScript)
-    Box(
-      value  = dexFee,
-      token  = (token -> tokenAmount),
-      script = sellerContract
-    )
+    ErgoScriptCompiler.compile(sellerContractEnv, sellerScript)
   }
 
   def swapScenario = {
@@ -163,6 +165,7 @@ object DEXPlayground {
     val sellerAskTokenAmount = 100L
     val sellerAskNanoErgs    = sellerAskTokenPrice * sellerAskTokenAmount
     val sellerDexFee         = 1000000L
+    val sellerDexFeePerToken = sellerDexFee / sellerAskTokenAmount
     val sellOrderTxFee       = MinTxFee
 
     sellerParty.generateUnspentBoxes(
@@ -170,14 +173,18 @@ object DEXPlayground {
       tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
-    val sellOrderBox =
-      sellerOrder(
-        sellerParty,
-        token,
-        sellerAskTokenAmount,
-        sellerAskTokenPrice,
-        sellerDexFee
-      )
+    val sellOrderContract = sellerOrderContract(
+      sellerParty,
+      token,
+      sellerAskTokenPrice,
+      sellerDexFeePerToken
+    )
+
+    val sellOrderBox = Box(
+      value  = sellerDexFee,
+      token  = (token -> sellerAskTokenAmount),
+      script = sellOrderContract
+    )
 
     val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
       toSpend       = sellerDexFee + sellOrderTxFee,
@@ -196,26 +203,27 @@ object DEXPlayground {
 
     blockchainSim.send(sellOrderTxSigned)
 
-    val sellerOutBoxPartialMatch =
-      Box(
-        value    = sellerAskNanoErgs / 2,
-        register = (R4 -> sellOrderTxSigned.outputs(0).id),
-        script   = contract(sellerParty.wallet.getAddress.pubKey)
-      )
+    val sellerTokenAmountSold       = sellerAskTokenAmount / 2
+    val sellerDexFeeForPartialMatch = sellerDexFeePerToken * sellerTokenAmountSold
+    val sellerOutBoxPartialMatch = Box(
+      value    = sellerTokenAmountSold * sellerAskTokenPrice,
+      register = (R4 -> sellOrderTxSigned.outputs(0).id),
+      script   = contract(sellerParty.wallet.getAddress.pubKey)
+    )
 
-    val newSellOrderBox =
-      sellerOrder(
-        sellerParty,
-        token,
-        sellerAskTokenAmount / 2,
-        sellerAskTokenPrice,
-        sellerDexFee
-      )
+    // reuse old contract, nothing is changed
+    val newSellOrderContract = sellOrderContract
+
+    val newSellOrderBox = Box(
+      value  = sellOrderBox.value - sellerOutBoxPartialMatch.value - sellerDexFeeForPartialMatch,
+      token  = (token -> (sellerAskTokenAmount - sellerTokenAmountSold)),
+      script = newSellOrderContract
+    )
 
     val buyerTokenAmountBought     = buyerBidTokenAmount / 2
     val buyerDexFeeForPartialMatch = buyerDexFeePerToken * buyerTokenAmountBought
     val buyerOutBoxPartialMatch = Box(
-      value    = buyOrderBox.value - buyerTokenAmountBought * buyersBidTokenPrice - buyerDexFeeForPartialMatch,
+      value    = buyerSwapBoxValue,
       token    = (token -> buyerTokenAmountBought),
       register = (R4 -> buyOrderTxSigned.outputs(0).id),
       script   = contract(buyerParty.wallet.getAddress.pubKey)
@@ -224,16 +232,20 @@ object DEXPlayground {
     // reuse old contract, nothing is changed
     val newBuyOrderContract = buyOrderContract
 
-    val newBuyOrderBoxValue = buyerOutBoxPartialMatch.value + buyerDexFee + buyerSwapBoxValue
-    val newBuyOrderBox      = Box(value = newBuyOrderBoxValue, script = newBuyOrderContract)
+    val newBuyOrderBoxValue = buyOrderBox.value - buyerOutBoxPartialMatch.value - buyerDexFeeForPartialMatch
+    val newBuyOrderBox = Box(
+      value    = newBuyOrderBoxValue,
+      register = (R4 -> buyOrderTxSigned.outputs(0).id),
+      script   = newBuyOrderContract
+    )
 
     val dexParty = blockchainSim.newParty("DEX")
 
-    val dexFee    = sellerDexFee + buyerDexFeeForPartialMatch
     val swapTxFee = MinTxFee
+    val dexFee    = sellerDexFeeForPartialMatch + buyerDexFeeForPartialMatch - swapTxFee
 
     val dexFeeOutBox = Box(
-      value  = dexFee - swapTxFee,
+      value  = dexFee,
       script = contract(dexParty.wallet.getAddress.pubKey)
     )
 
