@@ -29,7 +29,7 @@ object DEXPlayground {
       |  val returnTokenAmount = returnTokenData._2
       |  
       |  val newOrderBoxId = 1
-      |  val newOrderBox = OUTPUTS(0)
+      |  val newOrderBox = OUTPUTS(1)
       |  
       |  val tokenPrice = $tokenPrice
       |  val dexFeePerToken = $dexFeePerToken
@@ -76,10 +76,10 @@ object DEXPlayground {
 
     val sellerScript = s""" sellerPk || {
       |   // val outIdx = getVar[Short](127).get
-      |  val returnBox = OUTPUTS(0)
+      |  val returnBox = OUTPUTS(2)
       |  
       |  val newOrderBoxId = 1
-      |  val newOrderBox = OUTPUTS(0)
+      |  val newOrderBox = OUTPUTS(3)
       |  val newOrderTokenData = newOrderBox.tokens(0)
       |  val newOrderTokenId = newOrderTokenData._1
       |  val newOrderTokenAmount = newOrderTokenData._2
