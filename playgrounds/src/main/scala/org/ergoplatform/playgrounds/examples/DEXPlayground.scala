@@ -215,9 +215,10 @@ object DEXPlayground {
     val newSellOrderContract = sellOrderContract
 
     val newSellOrderBox = Box(
-      value  = sellOrderBox.value - sellerOutBoxPartialMatch.value - sellerDexFeeForPartialMatch,
-      token  = (token -> (sellerAskTokenAmount - sellerTokenAmountSold)),
-      script = newSellOrderContract
+      value    = sellOrderBox.value - sellerOutBoxPartialMatch.value - sellerDexFeeForPartialMatch,
+      token    = (token -> (sellerAskTokenAmount - sellerTokenAmountSold)),
+      register = (R4 -> sellOrderTxSigned.outputs(0).id),
+      script   = newSellOrderContract
     )
 
     val buyerTokenAmountBought     = buyerBidTokenAmount / 2
