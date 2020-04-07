@@ -184,15 +184,14 @@ object DEXPlayground {
       tokensToSpend = List(token -> sellerAskTokenAmount)
     )
 
-    val sellerOrderTx = Transaction(
+    val sellOrderTx = Transaction(
       inputs       = sellerBalanceBoxes,
       outputs      = List(sellOrderBox),
       fee          = sellOrderTxFee,
       sendChangeTo = sellerParty.wallet.getAddress
     )
 
-    // TODO: pass context extension
-    val sellOrderTxSigned = sellerParty.wallet.sign(sellerOrderTx)
+    val sellOrderTxSigned = sellerParty.wallet.sign(sellOrderTx)
 
     blockchainSim.send(sellOrderTxSigned)
 
