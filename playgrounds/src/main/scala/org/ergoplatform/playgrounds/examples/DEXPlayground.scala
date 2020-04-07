@@ -84,7 +84,7 @@ object DEXPlayground {
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
 
-      val tokensAreSecured = (returnBox.value == selfTokenAmount * tokenPrice) || {
+      (returnBox.value == selfTokenAmount * tokenPrice) || {
         foundNewOrderBoxes.size == 1 && {
           val newOrderBox = foundNewOrderBoxes(0)
           val newOrderTokenData = newOrderBox.tokens(0)
@@ -99,9 +99,6 @@ object DEXPlayground {
           tokenIdIsCorrect && soldTokenAmount >= 1 && newOrderBox.value >= (SELF.value - minSoldTokenErgValue - expectedDexFee)
         }
       }
-
-      // TODO: inline
-      tokensAreSecured
 
       }""".stripMargin
 
