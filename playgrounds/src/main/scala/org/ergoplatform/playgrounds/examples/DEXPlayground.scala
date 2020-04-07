@@ -40,9 +40,7 @@ object DEXPlayground {
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
 
-      // val newOrderBoxValueIsCorrect = newOrderBox.value >= (SELF.value - totalReturnErgValue - expectedDexFee)
-    
-      val coinsSecured = (SELF.value - expectedDexFee) == totalReturnErgValue || {
+      val coinsSecured = (SELF.value - expectedDexFee) == maxReturnTokenErgValue || {
         foundNewOrderBoxes.size == 1 && foundNewOrderBoxes(0).value >= (SELF.value - totalReturnErgValue - expectedDexFee)
       }
 
