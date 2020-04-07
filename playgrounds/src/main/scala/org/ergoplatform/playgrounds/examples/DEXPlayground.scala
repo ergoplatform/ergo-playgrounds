@@ -21,41 +21,41 @@ object DEXPlayground {
 
     println(s"buyerPk: $buyerPk")
     val buyerScript = s"""buyerPk || {
-      |
-      |  val returnBoxIdx = 0 // getVar[Short](127).get
-      |  val returnBox = OUTPUTS(0)
-      |  val returnTokenData = returnBox.tokens(0)
-      |  val returnTokenId = returnTokenData._1
-      |  val returnTokenAmount = returnTokenData._2
-      |  
-      |  val newOrderBoxId = 1
-      |  val newOrderBox = OUTPUTS(1)
-      |  
-      |  val tokenPrice = $tokenPrice
-      |  val dexFeePerToken = $dexFeePerToken
-      |
-      |  val iCanSpendReturnBox = returnBox.propositionBytes == buyerPk.propBytes
-      |  val returnBoxRefsMe = returnBox.R4[Coll[Byte]].get == SELF.id
-      |  val tokenIdIsCorrect = returnTokenId == tokenId
-      |
-      |  val maxReturnTokenErgValue = returnTokenAmount * tokenPrice
-      |  val totalReturnErgValue = maxReturnTokenErgValue + returnBox.value
-      |  val expectedDexFee = dexFeePerToken * returnTokenAmount
-      |  val newOrderBoxValueIsCorrect = newOrderBox.value >= (SELF.value - totalReturnErgValue - expectedDexFee)
-      |
-      |  val newOrderBoxRefsMe = newOrderBox.R4[Coll[Byte]].get == SELF.id
-      |  val newOrderBoxContractIsCorrect = SELF.propositionBytes == newOrderBox.propositionBytes
-      |
-      |  allOf(Coll(
-      |      tokenIdIsCorrect,
-      |      returnTokenAmount >= 1,
-      |      iCanSpendReturnBox,
-      |      returnBoxRefsMe,
-      |      newOrderBoxRefsMe,
-      |      newOrderBoxValueIsCorrect,
-      |      newOrderBoxContractIsCorrect
-      |  ))
-      |}
+
+      val returnBoxIdx = 0 // getVar[Short](127).get
+      val returnBox = OUTPUTS(0)
+      val returnTokenData = returnBox.tokens(0)
+      val returnTokenId = returnTokenData._1
+      val returnTokenAmount = returnTokenData._2
+      
+      val newOrderBoxId = 1
+      val newOrderBox = OUTPUTS(1)
+      
+      val tokenPrice = $tokenPrice
+      val dexFeePerToken = $dexFeePerToken
+    
+      val iCanSpendReturnBox = returnBox.propositionBytes == buyerPk.propBytes
+      val returnBoxRefsMe = returnBox.R4[Coll[Byte]].get == SELF.id
+      val tokenIdIsCorrect = returnTokenId == tokenId
+    
+      val maxReturnTokenErgValue = returnTokenAmount * tokenPrice
+      val totalReturnErgValue = maxReturnTokenErgValue + returnBox.value
+      val expectedDexFee = dexFeePerToken * returnTokenAmount
+      val newOrderBoxValueIsCorrect = newOrderBox.value >= (SELF.value - totalReturnErgValue - expectedDexFee)
+    
+      val newOrderBoxRefsMe = newOrderBox.R4[Coll[Byte]].get == SELF.id
+      val newOrderBoxContractIsCorrect = SELF.propositionBytes == newOrderBox.propositionBytes
+    
+      allOf(Coll(
+          tokenIdIsCorrect,
+          returnTokenAmount >= 1,
+          iCanSpendReturnBox,
+          returnBoxRefsMe,
+          newOrderBoxRefsMe,
+          newOrderBoxValueIsCorrect,
+          newOrderBoxContractIsCorrect
+      ))
+    }
       """.stripMargin
 
     ErgoScriptCompiler.compile(buyerContractEnv, buyerScript)
@@ -75,42 +75,42 @@ object DEXPlayground {
       Map("sellerPk" -> sellerPk, "tokenId" -> token.tokenId)
 
     val sellerScript = s""" sellerPk || {
-      |   // val outIdx = getVar[Short](127).get
-      |  val returnBox = OUTPUTS(2)
-      |  
-      |  val newOrderBoxId = 1
-      |  val newOrderBox = OUTPUTS(3)
-      |  val newOrderTokenData = newOrderBox.tokens(0)
-      |  val newOrderTokenId = newOrderTokenData._1
-      |  val newOrderTokenAmount = newOrderTokenData._2
-      |  
-      |  val tokenPrice = $tokenPrice
-      |  val dexFeePerToken = $dexFeePerToken
-      |
-      |  val iCanSpendReturnBox = returnBox.propositionBytes == sellerPk.propBytes
-      |  val returnBoxRefsMe = returnBox.R4[Coll[Byte]].get == SELF.id
-      |  val tokenIdIsCorrect = newOrderTokenId == tokenId
-      |
-      |  val selfTokenAmount = SELF.tokens(0)._2
-      |  val soldTokenAmount = selfTokenAmount - newOrderTokenAmount
-      |  val minSoldTokenErgValue = soldTokenAmount * tokenPrice
-      |
-      |  val expectedDexFee = dexFeePerToken * soldTokenAmount
-      |  val newOrderBoxValueIsCorrect = newOrderBox.value >= (SELF.value - minSoldTokenErgValue - expectedDexFee)
-      |
-      |  val newOrderBoxRefsMe = newOrderBox.R4[Coll[Byte]].get == SELF.id
-      |  val newOrderBoxContractIsCorrect = SELF.propositionBytes == newOrderBox.propositionBytes
-      |
-      |  allOf(Coll(
-      |      tokenIdIsCorrect,
-      |      soldTokenAmount >= 1,
-      |      iCanSpendReturnBox,
-      |      returnBoxRefsMe,
-      |      newOrderBoxRefsMe,
-      |      newOrderBoxValueIsCorrect,
-      |      newOrderBoxContractIsCorrect
-      |  ))
-      | }""".stripMargin
+      // val outIdx = getVar[Short](127).get
+      val returnBox = OUTPUTS(2)
+      
+      val newOrderBoxId = 1
+      val newOrderBox = OUTPUTS(3)
+      val newOrderTokenData = newOrderBox.tokens(0)
+      val newOrderTokenId = newOrderTokenData._1
+      val newOrderTokenAmount = newOrderTokenData._2
+      
+      val tokenPrice = $tokenPrice
+      val dexFeePerToken = $dexFeePerToken
+    
+      val iCanSpendReturnBox = returnBox.propositionBytes == sellerPk.propBytes
+      val returnBoxRefsMe = returnBox.R4[Coll[Byte]].get == SELF.id
+      val tokenIdIsCorrect = newOrderTokenId == tokenId
+    
+      val selfTokenAmount = SELF.tokens(0)._2
+      val soldTokenAmount = selfTokenAmount - newOrderTokenAmount
+      val minSoldTokenErgValue = soldTokenAmount * tokenPrice
+    
+      val expectedDexFee = dexFeePerToken * soldTokenAmount
+      val newOrderBoxValueIsCorrect = newOrderBox.value >= (SELF.value - minSoldTokenErgValue - expectedDexFee)
+    
+      val newOrderBoxRefsMe = newOrderBox.R4[Coll[Byte]].get == SELF.id
+      val newOrderBoxContractIsCorrect = SELF.propositionBytes == newOrderBox.propositionBytes
+    
+      allOf(Coll(
+        tokenIdIsCorrect,
+        soldTokenAmount >= 1,
+        iCanSpendReturnBox,
+        returnBoxRefsMe,
+        newOrderBoxRefsMe,
+        newOrderBoxValueIsCorrect,
+        newOrderBoxContractIsCorrect
+      ))
+      }""".stripMargin
 
     ErgoScriptCompiler.compile(sellerContractEnv, sellerScript)
   }
