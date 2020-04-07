@@ -137,6 +137,22 @@ object DEXPlayground {
         toSpend = buyersBidNanoErgs + buyOrderTxFee + buyerDexFee
       )
 
+    val sellerParty          = blockchainSim.newParty("seller")
+    val sellerAskTokenPrice  = 5000000L
+    val sellerAskTokenAmount = 100L
+    val sellerAskNanoErgs    = sellerAskTokenPrice * sellerAskTokenAmount
+    val sellerDexFee         = 10000000L
+    val sellerDexFeePerToken = sellerDexFee / sellerAskTokenAmount
+    val sellOrderTxFee       = MinTxFee
+
+    sellerParty.generateUnspentBoxes(
+      toSpend       = sellOrderTxFee + sellerDexFee,
+      tokensToSpend = List(token -> sellerAskTokenAmount)
+    )
+
+    sellerParty.printUnspentAssets()
+    buyerParty.printUnspentAssets()
+
     val buyOrderContract =
       buyerContract(
         buyerParty,
@@ -159,19 +175,6 @@ object DEXPlayground {
     val buyOrderTxSigned = buyerParty.wallet.sign(buyOrderTransaction)
 
     blockchainSim.send(buyOrderTxSigned)
-
-    val sellerParty          = blockchainSim.newParty("seller")
-    val sellerAskTokenPrice  = 5000000L
-    val sellerAskTokenAmount = 100L
-    val sellerAskNanoErgs    = sellerAskTokenPrice * sellerAskTokenAmount
-    val sellerDexFee         = 10000000L
-    val sellerDexFeePerToken = sellerDexFee / sellerAskTokenAmount
-    val sellOrderTxFee       = MinTxFee
-
-    sellerParty.generateUnspentBoxes(
-      toSpend       = sellOrderTxFee + sellerDexFee,
-      tokensToSpend = List(token -> sellerAskTokenAmount)
-    )
 
     val sellOrderContract = sellerOrderContract(
       sellerParty,
@@ -233,7 +236,7 @@ object DEXPlayground {
     // reuse old contract, nothing is changed
     val newBuyOrderContract = buyOrderContract
 
-    val newBuyOrderBoxValue = buyOrderBox.value - buyerDexFeeForPartialMatch
+    val newBuyOrderBoxValue = buyOrderBox.value - buyerTokenAmountBought * buyersBidTokenPrice - buyerDexFeeForPartialMatch
     val newBuyOrderBox = Box(
       value    = newBuyOrderBoxValue,
       register = (R4 -> buyOrderTxSigned.outputs(0).id),
