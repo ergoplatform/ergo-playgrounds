@@ -19,7 +19,6 @@ object DEXPlayground {
     val buyerContractEnv: ScriptEnv =
       Map("buyerPk" -> buyerPk, "tokenId" -> token.tokenId)
 
-    println(s"buyerPk: $buyerPk")
     val buyerScript = s"""buyerPk || {
 
       val tokenPrice = $tokenPrice
@@ -66,7 +65,6 @@ object DEXPlayground {
 
     val sellerPk = sellerParty.wallet.getAddress.pubKey
 
-    println(s"sellerPk: $sellerPk")
     val sellerContractEnv: ScriptEnv =
       Map("sellerPk" -> sellerPk, "tokenId" -> token.tokenId)
 

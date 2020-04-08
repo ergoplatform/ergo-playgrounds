@@ -22,7 +22,7 @@ class DummyWalletImpl(
   override val getAddress: Address = Address(masterKey.publicKey.key)
 
   override def sign(tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction = {
-    println(s"......$name: Signing transaction ShortTxDesc")
+    println(s"......$name: Signing transaction ${tx.id}")
     import Iso._
     val dlogs =
       JListToIndexedSeq(identityIso[ExtendedSecretKey]).from(IndexedSeq(masterKey))

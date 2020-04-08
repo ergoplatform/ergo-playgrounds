@@ -110,8 +110,10 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
     boxes.find(b => java.util.Arrays.equals(b.id, id)).get
 
   override def newParty(name: String): Party = {
-    println(s"..$scenarioName: Creating new party: $name")
-    DummyPartyImpl(this, name)
+    val party = DummyPartyImpl(this, name)
+    val pk    = party.wallet.getAddress.proveDlog
+    println(s"..$scenarioName: Creating new party: $name, pk: $pk")
+    party
   }
 
   override def send(tx: ErgoLikeTransaction): Unit = {
@@ -125,7 +127,7 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
       )
     )
     boxes = newBoxes
-    println(s"..$scenarioName: Accepting transaction ShortTxDesc to the blockchain")
+    println(s"..$scenarioName: Accepting transaction ${tx.id} to the blockchain")
   }
 
   override def newToken(name: String): TokenInfo = {
