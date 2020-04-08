@@ -1,4 +1,4 @@
-package org.ergoplatform.playgroundenv.models
+package org.ergoplatform.playgroundenv.utils
 
 import org.ergoplatform.compiler.ErgoContract
 import sigmastate.interpreter.Interpreter.ScriptEnv

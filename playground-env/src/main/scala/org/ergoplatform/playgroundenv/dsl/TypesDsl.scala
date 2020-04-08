@@ -9,4 +9,5 @@ trait TypesDsl {
   type Address              = org.ergoplatform.playgroundenv.models.Address
   type Party                = org.ergoplatform.playgroundenv.models.Party
   type TokenInfo            = org.ergoplatform.playgroundenv.models.TokenInfo
+  type ScriptEnv            = sigmastate.interpreter.Interpreter.ScriptEnv
 }

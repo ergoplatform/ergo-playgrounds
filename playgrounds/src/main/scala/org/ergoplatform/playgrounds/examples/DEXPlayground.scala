@@ -1,11 +1,9 @@
 package org.ergoplatform.playgrounds.examples
 
-import org.ergoplatform.playgroundenv.models.ErgoScriptCompiler
-
 object DEXPlayground {
   import org.ergoplatform.compiler.ErgoScalaCompiler._
+  import org.ergoplatform.playgroundenv.utils.ErgoScriptCompiler
   import org.ergoplatform.playground._
-  import sigmastate.interpreter.Interpreter.ScriptEnv
 
   def buyerContract(
     buyerParty: Party,
