@@ -435,7 +435,8 @@ object DEXPlayground {
 //     sellerParty.printUnspentAssets()
 //   }
 
-  // swapScenario
+  swapScenario
 //   refundSellOrderScenario
+
   cancelBuyOrderScenario
 }
