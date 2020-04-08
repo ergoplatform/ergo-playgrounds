@@ -161,7 +161,6 @@ object DEXPlayground {
       sendChangeTo = buyerParty.wallet.getAddress
     )
 
-    // TODO: pass context extension
     val buyOrderTxSigned = buyerParty.wallet.sign(buyOrderTransaction)
 
     blockchainSim.send(buyOrderTxSigned)
@@ -315,57 +314,75 @@ object DEXPlayground {
 
   }
 
-  // def refundBuyOrderScenario = {
+  def cancelBuyOrderScenario = {
 
-  //   val blockchainSim = newBlockChainSimulationScenario("Refund buy order")
+    val blockchainSim = newBlockChainSimulationScenario("CancelBuyOrder")
 
-  //   val buyerParty          = blockchainSim.newParty("buyer")
-  //   val buyerBidTokenAmount = 100
-  //   val buyersBidNanoErgs   = 100000000
-  //   val buyOrderTxFee       = MinTxFee
-  //   val buyerDexFee         = 1000000L
-  //   val buyerSwapBoxValue   = MinErg
-  //   val cancelTxFee         = MinTxFee
+    val token = blockchainSim.newToken("TKN")
+    // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
 
-  //   buyerParty
-  //     .generateUnspentBoxes(
-  //       toSpend = buyersBidNanoErgs + buyerDexFee + buyOrderTxFee + buyerSwapBoxValue + cancelTxFee
-  //     )
-  //   val token = blockchainSim.newToken("TKN")
+    val buyerParty          = blockchainSim.newParty("buyer")
+    val buyerBidTokenAmount = 100L
+    val buyersBidTokenPrice = 5000000L
+    val buyersBidNanoErgs   = buyersBidTokenPrice * buyerBidTokenAmount
+    val buyerDexFee         = 10000000L
+    val buyerDexFeePerToken = buyerDexFee / buyerBidTokenAmount
+    val buyOrderTxFee       = MinTxFee
+    val buyerSwapBoxValue   = MinErg
 
-  //   val buyOrderTransaction =
-  //     buyerOrder(
-  //       buyerParty,
-  //       token,
-  //       buyerBidTokenAmount,
-  //       buyersBidNanoErgs + buyerSwapBoxValue,
-  //       buyerDexFee,
-  //       buyOrderTxFee
-  //     )
+    buyerParty
+      .generateUnspentBoxes(
+        toSpend = buyersBidNanoErgs + buyOrderTxFee + buyerDexFee
+      )
 
-  //   val buyOrderTransactionSigned = buyerParty.wallet.sign(buyOrderTransaction)
+    buyerParty.printUnspentAssets()
 
-  //   blockchainSim.send(buyOrderTransactionSigned)
+    val buyOrderContract =
+      buyerContract(
+        buyerParty,
+        token,
+        buyersBidTokenPrice,
+        buyerDexFeePerToken
+      )
 
-  //   val buyerRefundBox =
-  //     Box(
-  //       value  = buyersBidNanoErgs,
-  //       token  = (blockchainSim.newToken("DEXCNCL") -> 1L),
-  //       script = contract(buyerParty.wallet.getAddress.pubKey)
-  //     )
+    val buyOrderBoxValue = buyersBidTokenPrice * buyerBidTokenAmount + buyerDexFee
+    val buyOrderBox      = Box(value = buyOrderBoxValue, script = buyOrderContract)
 
-  //   val cancelBuyTransaction = Transaction(
-  //     inputs       = List(buyOrderTransactionSigned.outputs(0)),
-  //     outputs      = List(buyerRefundBox),
-  //     fee          = cancelTxFee,
-  //     sendChangeTo = buyerParty.wallet.getAddress
-  //   )
+    val buyOrderTransaction = Transaction(
+      inputs       = buyerParty.selectUnspentBoxes(toSpend = buyOrderBoxValue + buyOrderTxFee),
+      outputs      = List(buyOrderBox),
+      fee          = buyOrderTxFee,
+      sendChangeTo = buyerParty.wallet.getAddress
+    )
 
-  //   val cancelBuyTransactionSigned = buyerParty.wallet.sign(cancelBuyTransaction)
-  //   blockchainSim.send(cancelBuyTransactionSigned)
+    val buyOrderTxSigned = buyerParty.wallet.sign(buyOrderTransaction)
 
-  //   buyerParty.printUnspentAssets()
-  // }
+    blockchainSim.send(buyOrderTxSigned)
+
+    buyerParty.printUnspentAssets()
+
+    val cancelTxFee = MinTxFee
+
+    val buyerReturnBox = Box(
+      value = buyOrderBox.value - cancelTxFee,
+      // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
+      token = (blockchainSim.newToken("DEXCNCL") -> 1L),
+      // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
+      register = (R4 -> buyOrderTxSigned.outputs(0).id),
+      script   = contract(buyerParty.wallet.getAddress.pubKey)
+    )
+
+    val cancelBuyTransaction = Transaction(
+      inputs  = List(buyOrderTxSigned.outputs(0)),
+      outputs = List(buyerReturnBox),
+      fee     = cancelTxFee
+    )
+
+    val cancelBuyTransactionSigned = buyerParty.wallet.sign(cancelBuyTransaction)
+    blockchainSim.send(cancelBuyTransactionSigned)
+
+    buyerParty.printUnspentAssets()
+  }
 
 //   def refundSellOrderScenario = {
 
@@ -418,7 +435,7 @@ object DEXPlayground {
 //     sellerParty.printUnspentAssets()
 //   }
 
-  swapScenario
+  // swapScenario
 //   refundSellOrderScenario
-//   refundBuyOrderScenario
+  cancelBuyOrderScenario
 }

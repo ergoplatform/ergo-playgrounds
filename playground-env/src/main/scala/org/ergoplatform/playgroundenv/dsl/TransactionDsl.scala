@@ -6,9 +6,6 @@ import org.ergoplatform.playgroundenv.utils.TransactionOperations
 
 trait TransactionDsl extends BoxDsl {
 
-  // TODO: make a box for a change
-  // TODO check input and output sums checks out and miner's fee (check the change is 0)
-
   implicit val addressEncoder = ErgoAddressEncoder(
     ErgoAddressEncoder.TestnetNetworkPrefix
   )
