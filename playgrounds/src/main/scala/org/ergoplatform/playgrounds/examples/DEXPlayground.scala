@@ -384,59 +384,80 @@ object DEXPlayground {
     buyerParty.printUnspentAssets()
   }
 
-//   def refundSellOrderScenario = {
+  def cancelSellOrderScenario = {
 
-//     val blockchainSim = newBlockChainSimulationScenario("Refund sell order")
+    val blockchainSim = newBlockChainSimulationScenario("CancelSellOrder")
 
-//     val token                = blockchainSim.newToken("TKN")
-//     val sellerParty          = blockchainSim.newParty("seller")
-//     val sellerAskNanoErgs    = 50000000L
-//     val sellerAskTokenAmount = 100L
-//     val sellerDexFee         = 1000000L
-//     val sellOrderTxFee       = MinTxFee
-//     val cancelTxFee          = MinTxFee
+    val token = blockchainSim.newToken("TKN")
 
-//     sellerParty.generateUnspentBoxes(
-//       toSpend       = sellerDexFee + sellOrderTxFee + cancelTxFee,
-//       tokensToSpend = List(token -> sellerAskTokenAmount)
-//     )
+    val sellerParty          = blockchainSim.newParty("seller")
+    val sellerAskTokenPrice  = 5000000L
+    val sellerAskTokenAmount = 100L
+    val sellerAskNanoErgs    = sellerAskTokenPrice * sellerAskTokenAmount
+    val sellerDexFee         = 10000000L
+    val sellerDexFeePerToken = sellerDexFee / sellerAskTokenAmount
+    val sellOrderTxFee       = MinTxFee
 
-//     val sellOrderTransaction =
-//       sellerOrder(
-//         sellerParty,
-//         token,
-//         sellerAskTokenAmount,
-//         sellerAskNanoErgs,
-//         sellerDexFee,
-//         sellOrderTxFee
-//       )
+    sellerParty.generateUnspentBoxes(
+      toSpend       = sellOrderTxFee + sellerDexFee,
+      tokensToSpend = List(token -> sellerAskTokenAmount)
+    )
 
-//     val sellOrderTransactionSigned = sellerParty.wallet.sign(sellOrderTransaction)
+    sellerParty.printUnspentAssets()
 
-//     blockchainSim.send(sellOrderTransactionSigned)
-//     val sellerRefundBox =
-//       Box(
-//         value  = sellerDexFee,
-//         token  = (token -> sellerAskTokenAmount),
-//         script = contract(sellerParty.wallet.getAddress.pubKey)
-//       )
+    val sellOrderContract = sellerOrderContract(
+      sellerParty,
+      token,
+      sellerAskTokenPrice,
+      sellerDexFeePerToken
+    )
 
-//     val cancelSellTransaction = Transaction(
-//       inputs = List(sellOrderTransactionSigned.outputs(0)) ++ sellerParty
-//           .selectUnspentBoxes(cancelTxFee),
-//       outputs = List(sellerRefundBox),
-//       fee     = cancelTxFee
-//     )
+    val sellOrderBox = Box(
+      value  = sellerDexFee,
+      token  = (token -> sellerAskTokenAmount),
+      script = sellOrderContract
+    )
 
-//     val cancelSellTransactionSigned = sellerParty.wallet.sign(cancelSellTransaction)
+    val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
+      toSpend       = sellerDexFee + sellOrderTxFee,
+      tokensToSpend = List(token -> sellerAskTokenAmount)
+    )
 
-//     blockchainSim.send(cancelSellTransactionSigned)
+    val sellOrderTx = Transaction(
+      inputs       = sellerBalanceBoxes,
+      outputs      = List(sellOrderBox),
+      fee          = sellOrderTxFee,
+      sendChangeTo = sellerParty.wallet.getAddress
+    )
 
-//     sellerParty.printUnspentAssets()
-//   }
+    val sellOrderTxSigned = sellerParty.wallet.sign(sellOrderTx)
+
+    blockchainSim.send(sellOrderTxSigned)
+
+    val cancelTxFee = MinTxFee
+
+    val sellerReturnBox = Box(
+      value = sellOrderBox.value - cancelTxFee,
+      token = (token -> sellerAskTokenAmount),
+      // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
+      register = (R4 -> sellOrderTxSigned.outputs(0).id),
+      script   = contract(sellerParty.wallet.getAddress.pubKey)
+    )
+
+    val cancelSellTransaction = Transaction(
+      inputs  = List(sellOrderTxSigned.outputs(0)),
+      outputs = List(sellerReturnBox),
+      fee     = cancelTxFee
+    )
+
+    val cancelSellTransactionSigned = sellerParty.wallet.sign(cancelSellTransaction)
+
+    blockchainSim.send(cancelSellTransactionSigned)
+
+    sellerParty.printUnspentAssets()
+  }
 
   swapScenario
-//   refundSellOrderScenario
-
+  cancelSellOrderScenario
   cancelBuyOrderScenario
 }
