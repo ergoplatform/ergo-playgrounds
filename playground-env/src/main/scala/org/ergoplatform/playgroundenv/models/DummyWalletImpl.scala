@@ -27,16 +27,8 @@ class DummyWalletImpl(
     val dlogs =
       JListToIndexedSeq(identityIso[ExtendedSecretKey]).from(IndexedSeq(masterKey))
     val dhtInputs    = new java.util.ArrayList[DiffieHellmanTupleProverInput](0)
-    val prover       = new AppkitProvingInterpreter(dlogs, dhtInputs, blockchain.parameters)
     val boxesToSpend = tx.inputs.map(i => blockchain.getBox(i.boxId)).toIndexedSeq
-    val signedTx =
-      prover.sign(tx, boxesToSpend, IndexedSeq(), blockchain.stateContext).get
-    TransactionVerifier.verify(
-      signedTx,
-      boxesToSpend,
-      blockchain.parameters,
-      blockchain.stateContext
-    )
-    signedTx
+    val prover       = new AppkitProvingInterpreter(dlogs, dhtInputs, blockchain.parameters)
+    prover.sign(tx, boxesToSpend, IndexedSeq(), blockchain.stateContext).get
   }
 }
