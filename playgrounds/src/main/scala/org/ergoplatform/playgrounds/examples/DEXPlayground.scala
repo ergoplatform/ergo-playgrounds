@@ -265,53 +265,53 @@ object DEXPlayground {
     // ------------------------------------------------------------------------
     // Total matching
     // ------------------------------------------------------------------------
-    {
-      val buyOrder  = swapTxPartialMatchingSigned.outputs(1)
-      val sellOrder = swapTxPartialMatchingSigned.outputs(3)
 
-      val sellerTokenAmountSold = sellOrder.additionalTokens(0)._2
-      val sellerDexFee          = sellerDexFeePerToken * sellerTokenAmountSold
-      val sellerOutBox = Box(
-        value    = sellerTokenAmountSold * sellerAskTokenPrice,
-        register = (R4 -> sellOrder.id),
-        script   = contract(sellerParty.wallet.getAddress.pubKey)
-      )
+    val buyOrderAfterPartialMatching  = swapTxPartialMatchingSigned.outputs(1)
+    val sellOrderAfterPartialMatching = swapTxPartialMatchingSigned.outputs(3)
 
-      val buyerTokenAmountBought = sellerTokenAmountSold
-      val buyerDexFee            = buyerDexFeePerToken * buyerTokenAmountBought
-      val buyerOutBox = Box(
-        value    = buyerSwapBoxValue,
-        token    = (token -> buyerTokenAmountBought),
-        register = (R4 -> buyOrder.id),
-        script   = contract(buyerParty.wallet.getAddress.pubKey)
-      )
+    val sellerTokenAmountSoldInTotalMatching =
+      sellOrderAfterPartialMatching.additionalTokens(0)._2
+    val sellerDexFeeForTotalMatching = sellerDexFeePerToken * sellerTokenAmountSoldInTotalMatching
+    val sellerOutBoxForTotalMatching = Box(
+      value    = sellerTokenAmountSoldInTotalMatching * sellerAskTokenPrice,
+      register = (R4 -> sellOrderAfterPartialMatching.id),
+      script   = contract(sellerParty.wallet.getAddress.pubKey)
+    )
 
-      val swapTxFee = MinTxFee
-      val dexFee    = sellerDexFee + buyerDexFee - swapTxFee - buyerSwapBoxValue
+    val buyerTokenAmountBoughtInTotalMatching = sellerTokenAmountSoldInTotalMatching
+    val buyerDexFeeForTotalMatching           = buyerDexFeePerToken * buyerTokenAmountBoughtInTotalMatching
+    val buyerOutBoxForTotalMatching = Box(
+      value    = buyerSwapBoxValue,
+      token    = (token -> buyerTokenAmountBoughtInTotalMatching),
+      register = (R4 -> buyOrderAfterPartialMatching.id),
+      script   = contract(buyerParty.wallet.getAddress.pubKey)
+    )
 
-      val dexFeeOutBox = Box(
-        value  = dexFee,
-        script = contract(dexParty.wallet.getAddress.pubKey)
-      )
+    val swapTxFeeForTotalMatching = MinTxFee
+    val dexFeeForTotalMatching    = sellerDexFeeForTotalMatching + buyerDexFeeForTotalMatching - swapTxFeeForTotalMatching - buyerSwapBoxValue
 
-      val swapTx = Transaction(
-        inputs = List(buyOrder, sellOrder),
-        outputs = List(
-          buyerOutBox,
-          sellerOutBox,
-          dexFeeOutBox
-        ),
-        fee = swapTxFee
-      )
+    val dexFeeOutBoxForTotalMatching = Box(
+      value  = dexFeeForTotalMatching,
+      script = contract(dexParty.wallet.getAddress.pubKey)
+    )
 
-      val swapTxSigned = dexParty.wallet.sign(swapTx)
+    val swapTxForTotalMatching = Transaction(
+      inputs = List(buyOrderAfterPartialMatching, sellOrderAfterPartialMatching),
+      outputs = List(
+        buyerOutBoxForTotalMatching,
+        sellerOutBoxForTotalMatching,
+        dexFeeOutBoxForTotalMatching
+      ),
+      fee = swapTxFeeForTotalMatching
+    )
 
-      blockchainSim.send(swapTxSigned)
+    val swapTxForTotalMatchingSigned = dexParty.wallet.sign(swapTxForTotalMatching)
 
-      sellerParty.printUnspentAssets()
-      buyerParty.printUnspentAssets()
-      dexParty.printUnspentAssets()
-    }
+    blockchainSim.send(swapTxForTotalMatchingSigned)
+
+    sellerParty.printUnspentAssets()
+    buyerParty.printUnspentAssets()
+    dexParty.printUnspentAssets()
 
   }
 
