@@ -138,16 +138,16 @@ object AssetsAtomicExchangePlayground {
 
     val sellerOutBox =
       Box(
-        value    = sellerAskNanoErgs,
-        register = (R4 -> sellOrderTransactionSigned.outputs(0).id),
-        script   = contract(sellerParty.wallet.getAddress.pubKey)
+        value     = sellerAskNanoErgs,
+        registers = (R4 -> sellOrderTransactionSigned.outputs(0).id),
+        script    = contract(sellerParty.wallet.getAddress.pubKey)
       )
 
     val buyerOutBox = Box(
-      value    = buyerSwapBoxValue,
-      token    = (token -> buyerBidTokenAmount),
-      register = (R4 -> buyOrderTransactionSigned.outputs(0).id),
-      script   = contract(buyerParty.wallet.getAddress.pubKey)
+      value     = buyerSwapBoxValue,
+      token     = (token -> buyerBidTokenAmount),
+      registers = (R4 -> buyOrderTransactionSigned.outputs(0).id),
+      script    = contract(buyerParty.wallet.getAddress.pubKey)
     )
 
     val dexParty = blockchainSim.newParty("DEX")

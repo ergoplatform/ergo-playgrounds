@@ -5,6 +5,7 @@ import org.ergoplatform.playgroundenv.models.TokenAmount
 import org.ergoplatform.{ErgoBox, ErgoBoxCandidate}
 import scorex.crypto.hash.Digest32
 import sigmastate.SType
+import sigmastate.SType.AnyOps
 import sigmastate.Values.{ByteArrayConstant, EvaluatedValue}
 import sigmastate.eval.Extensions._
 import sigmastate.eval._
@@ -35,14 +36,26 @@ trait BoxDsl extends TypesDsl {
     )
   }
 
-  private def liftVal[T](v: T): EvaluatedValue[SType] = v match {
-    case ba: Array[Byte] => ByteArrayConstant(ba)
+  private def liftVal(v: Any): EvaluatedValue[SType] = {
+    val (tV, newV) = v match {
+      case a: Array[Byte] => (Evaluation.rtypeOf(a.toColl).get, a.toColl)
+      case _              => (Evaluation.rtypeOf(v).get, v)
+    }
+    val elemTpe = Evaluation.rtypeToSType(tV)
+    IR.builder.mkConstant[SType](newV.asWrappedType, elemTpe)
   }
 
-  def Box[T](
+  private def liftRegVals(
+    regs: Seq[(NonMandatoryRegisterId, Any)]
+  ): Map[NonMandatoryRegisterId, EvaluatedValue[SType]] =
+    regs.map { t =>
+      (t._1, liftVal(t._2))
+    }.toMap
+
+  def Box(
     value: Long,
-    register: (NonMandatoryRegisterId, T),
-    script: ErgoContract
+    script: ErgoContract,
+    registers: (NonMandatoryRegisterId, Any)*
   ): ErgoBoxCandidate = {
     require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
@@ -50,15 +63,15 @@ trait BoxDsl extends TypesDsl {
       script.ergoTree,
       0,
       Array[(TokenId, Long)]().toColl,
-      Map((register._1, liftVal(register._2)))
+      liftRegVals(registers)
     )
   }
 
   def Box(
     value: Long,
     token: (TokenInfo, Long),
-    register: (NonMandatoryRegisterId, Any),
-    script: ErgoContract
+    script: ErgoContract,
+    registers: (NonMandatoryRegisterId, Any)*
   ): ErgoBoxCandidate = {
     require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
@@ -66,7 +79,7 @@ trait BoxDsl extends TypesDsl {
       script.ergoTree,
       0,
       Array[(TokenId, Long)]((Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
-      Map((register._1, liftVal(register._2)))
+      liftRegVals(registers)
     )
   }
 }
