@@ -20,16 +20,20 @@ trait BoxDsl extends TypesDsl {
   val R8 = ErgoBox.R8
   val R9 = ErgoBox.R9
 
-  def Box(value: Long, script: ErgoContract): ErgoBoxCandidate =
+  def Box(value: Long, script: ErgoContract): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(value, script.ergoTree, 0)
+  }
 
-  def Box(value: Long, token: TokenAmount, script: ErgoContract): ErgoBoxCandidate =
+  def Box(value: Long, token: TokenAmount, script: ErgoContract): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
       0,
       Array[(TokenId, Long)]((Digest32 @@ token.token.tokenId.toArray, token.tokenAmount)).toColl
     )
+  }
 
   private def liftVal[T](v: T): EvaluatedValue[SType] = v match {
     case ba: Array[Byte] => ByteArrayConstant(ba)
@@ -39,7 +43,8 @@ trait BoxDsl extends TypesDsl {
     value: Long,
     register: (NonMandatoryRegisterId, T),
     script: ErgoContract
-  ): ErgoBoxCandidate =
+  ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
@@ -47,13 +52,15 @@ trait BoxDsl extends TypesDsl {
       Array[(TokenId, Long)]().toColl,
       Map((register._1, liftVal(register._2)))
     )
+  }
 
   def Box(
     value: Long,
     token: (TokenInfo, Long),
     register: (NonMandatoryRegisterId, Any),
     script: ErgoContract
-  ): ErgoBoxCandidate =
+  ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
@@ -61,4 +68,5 @@ trait BoxDsl extends TypesDsl {
       Array[(TokenId, Long)]((Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
       Map((register._1, liftVal(register._2)))
     )
+  }
 }

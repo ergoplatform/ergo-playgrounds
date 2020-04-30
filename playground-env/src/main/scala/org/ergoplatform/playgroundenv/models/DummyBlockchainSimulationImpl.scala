@@ -16,6 +16,7 @@ import sigmastate.eval.Extensions._
 
 import scala.collection.mutable
 import org.ergoplatform.playgroundenv.dsl.ObjectGenerators
+import org.ergoplatform.playgroundenv.utils.TransactionVerifier
 
 case class DummyBlockchainSimulationImpl(scenarioName: String)
   extends BlockchainSimulation {
@@ -109,11 +110,16 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
     boxes.find(b => java.util.Arrays.equals(b.id, id)).get
 
   override def newParty(name: String): Party = {
-    println(s"..$scenarioName: Creating new party: $name")
-    DummyPartyImpl(this, name)
+    val party = DummyPartyImpl(this, name)
+    val pk    = party.wallet.getAddress.proveDlog
+    println(s"..$scenarioName: Creating new party: $name, pk: $pk")
+    party
   }
 
   override def send(tx: ErgoLikeTransaction): Unit = {
+    val boxesToSpend = tx.inputs.map(i => getBox(i.boxId)).toIndexedSeq
+    TransactionVerifier.verify(tx, boxesToSpend, parameters, stateContext)
+
     val newBoxes: mutable.ArrayBuffer[ErgoBox] = new mutable.ArrayBuffer[ErgoBox]()
     newBoxes.appendAll(tx.outputs)
     newBoxes.appendAll(
@@ -121,7 +127,7 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
       )
     )
     boxes = newBoxes
-    println(s"..$scenarioName: Accepting transaction ShortTxDesc to the blockchain")
+    println(s"..$scenarioName: Accepting transaction ${tx.id} to the blockchain")
   }
 
   override def newToken(name: String): TokenInfo = {
