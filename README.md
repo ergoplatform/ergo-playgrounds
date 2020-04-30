@@ -13,9 +13,11 @@ Enjoy:
 ### DEX with partial filling contracts
 
 [Run in Scastie](https://scastie.scala-lang.org/YCzvl8NBQwa7R0pVI5mHnA)
+
 [Source code](https://github.com/ergoplatform/ergo-playgrounds/blob/c91117ae0b1434b7a554028592e30a5bba15a14b/playgrounds/src/main/scala/org/ergoplatform/playgrounds/examples/AssetsAtomicExchangePlayground.scala#L1-L1)
 
 ### Assets Atomic Exchange contracts
 
 [Run in Scastie](https://scastie.scala-lang.org/qx8LnkelR124gGkWzdn2wg)
+
 [Source code](https://github.com/ergoplatform/ergo-playgrounds/blob/c91117ae0b1434b7a554028592e30a5bba15a14b/playgrounds/src/main/scala/org/ergoplatform/playgrounds/examples/AssetsAtomicExchangePlayground.scala#L1-L1)
