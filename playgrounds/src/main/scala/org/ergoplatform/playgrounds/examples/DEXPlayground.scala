@@ -21,7 +21,6 @@ object DEXPlayground {
       val tokenPrice = $tokenPrice
       val dexFeePerToken = $dexFeePerToken
 
-      // TODO: use flatmap?
       val spendingSellOrders = INPUTS.filter { (b: Box) => 
         b.R4[Coll[Byte]].isDefined && b.R5[Long].isDefined && {
           val sellOrderTokenId = b.R4[Coll[Byte]].get
@@ -31,15 +30,14 @@ object DEXPlayground {
         }
       }
 
-      val spendingSellOrderTokenInfo = spendingSellOrders.map { (b: Box) => 
-        (b.tokens(0)._2, b.R5[Long].get)
-      }
-
       // TODO: only part of it is matched
-      // TODO: sort by price
-      val totalSpendingSellOrdersValue = spendingSellOrderTokenInfo.fold(0L, { (acc: Long, t: (Long, Long)) =>  
-        acc + (t._1 * t._2)
-      })
+      // TODO: for multiplse sell orders sort by price
+      // val spendingSellOrderTokenInfo = spendingSellOrders.map { (b: Box) => 
+      //   (b.tokens(0)._2, b.R5[Long].get)
+      // }
+      // val totalSpendingSellOrdersValue = spendingSellOrderTokenInfo.fold(0L, { (acc: Long, t: (Long, Long)) =>  
+      //   acc + (t._1 * t._2)
+      // })
 
       val returnBox = OUTPUTS.filter { (b: Box) => 
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == buyerPk.propBytes
@@ -60,7 +58,12 @@ object DEXPlayground {
         foundNewOrderBoxes.size == 1 && foundNewOrderBoxes(0).value >= (SELF.value - totalReturnErgValueEq - expectedDexFee)
       }
 
-      val bestPriceDelta = maxReturnTokenErgValue - totalSpendingSellOrdersValue
+      // TODO: test it cannot be stolen on partial and total matching 
+      // fixed spending sell orders to 1
+      val bestPriceDeltaReturned = spendingSellOrders.size == 1 && { 
+        val spendingSellOrdersValue = spendingSellOrders(0).R5[Long].get * returnTokenAmount
+        returnBox.value >= maxReturnTokenErgValue - spendingSellOrdersValue
+      }
 
       val tokenIdIsCorrect = returnTokenId == tokenId
     
@@ -68,7 +71,7 @@ object DEXPlayground {
           tokenIdIsCorrect,
           returnTokenAmount >= 1,
           coinsSecured,
-          returnBox.value >= bestPriceDelta
+          bestPriceDeltaReturned
       ))
     }
       """.stripMargin
@@ -146,7 +149,7 @@ object DEXPlayground {
       )
 
     val sellerParty          = blockchainSim.newParty("seller")
-    val sellerAskTokenPrice  = 5000000L
+    val sellerAskTokenPrice  = 4000000L
     val sellerAskTokenAmount = 100L
     val sellerAskNanoErgs    = sellerAskTokenPrice * sellerAskTokenAmount
     val sellerDexFee         = 10000000L
@@ -237,7 +240,7 @@ object DEXPlayground {
     val buyerTokenAmountBought     = buyerBidTokenAmount / 2
     val buyerDexFeeForPartialMatch = buyerDexFeePerToken * buyerTokenAmountBought
     val buyerOutBoxPartialMatch = Box(
-      value     = buyerSwapBoxValue,
+      value     = buyerSwapBoxValue + (buyersBidTokenPrice - sellerAskTokenPrice) * buyerTokenAmountBought,
       token     = (token -> buyerTokenAmountBought),
       registers = (R4 -> buyOrderTxSigned.outputs(0).id),
       script    = contract(buyerParty.wallet.getAddress.pubKey)
@@ -302,7 +305,7 @@ object DEXPlayground {
     val buyerTokenAmountBoughtInTotalMatching = sellerTokenAmountSoldInTotalMatching
     val buyerDexFeeForTotalMatching           = buyerDexFeePerToken * buyerTokenAmountBoughtInTotalMatching
     val buyerOutBoxForTotalMatching = Box(
-      value     = buyerSwapBoxValue,
+      value     = buyerSwapBoxValue + (buyersBidTokenPrice - sellerAskTokenPrice) * buyerTokenAmountBoughtInTotalMatching,
       token     = (token -> buyerTokenAmountBoughtInTotalMatching),
       registers = (R4 -> buyOrderAfterPartialMatching.id),
       script    = contract(buyerParty.wallet.getAddress.pubKey)
