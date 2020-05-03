@@ -99,7 +99,7 @@ object DEXPlayground {
       }(0)
       
       val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
-        b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
+        b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
 
       (returnBox.value == selfTokenAmount * tokenPrice) || {
@@ -228,8 +228,10 @@ object DEXPlayground {
     val newSellOrderBox = Box(
       value     = sellOrderBox.value - sellerDexFeeForPartialMatch,
       token     = (token -> (sellerAskTokenAmount - sellerTokenAmountSold)),
-      registers = (R4 -> sellOrderTxSigned.outputs(0).id),
-      script    = newSellOrderContract
+      script    = newSellOrderContract,
+      registers = R4 -> token.tokenId,
+      R5 -> sellerAskTokenPrice,
+      R6 -> sellOrderTxSigned.outputs(0).id
     )
 
     val buyerTokenAmountBought     = buyerBidTokenAmount / 2
