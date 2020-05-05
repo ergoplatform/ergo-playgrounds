@@ -204,7 +204,12 @@ object DEXPlayground {
       )
 
     val buyOrderBoxValue = buyersBidTokenPrice * buyerBidTokenAmount + buyerDexFee
-    val buyOrderBox      = Box(value = buyOrderBoxValue, script = buyOrderContract)
+    val buyOrderBox = Box(
+      value     = buyOrderBoxValue,
+      script    = buyOrderContract,
+      registers = R4 -> token.tokenId,
+      R5 -> buyersBidTokenPrice
+    )
 
     val buyOrderTransaction = Transaction(
       inputs       = buyerParty.selectUnspentBoxes(toSpend = buyOrderBoxValue + buyOrderTxFee),
@@ -283,8 +288,10 @@ object DEXPlayground {
     val newBuyOrderBoxValue = buyOrderBox.value - buyerTokenAmountBought * buyersBidTokenPrice - buyerDexFeeForPartialMatch
     val newBuyOrderBox = Box(
       value     = newBuyOrderBoxValue,
-      registers = (R4 -> buyOrderTxSigned.outputs(0).id),
-      script    = newBuyOrderContract
+      script    = newBuyOrderContract,
+      registers = R4 -> token.tokenId,
+      R5 -> sellerAskTokenPrice,
+      R6 -> buyOrderTxSigned.outputs(0).id
     )
 
     val dexParty = blockchainSim.newParty("DEX")
