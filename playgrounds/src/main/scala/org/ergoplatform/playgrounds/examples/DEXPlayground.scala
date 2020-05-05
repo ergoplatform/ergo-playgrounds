@@ -46,32 +46,37 @@ object DEXPlayground {
       val returnTokenData = returnBox.tokens(0)
       val returnTokenId = returnTokenData._1
       val returnTokenAmount = returnTokenData._2
-      val maxReturnTokenErgValue = returnTokenAmount * tokenPrice
-      val totalReturnErgValueEq = maxReturnTokenErgValue + returnBox.value
       val expectedDexFee = dexFeePerToken * returnTokenAmount
       
       val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
-        b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
+        b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
 
-      val coinsSecured = (SELF.value - expectedDexFee) == maxReturnTokenErgValue || {
-        foundNewOrderBoxes.size == 1 && foundNewOrderBoxes(0).value >= (SELF.value - totalReturnErgValueEq - expectedDexFee)
+      val sellOrder = spendingSellOrders(0)
+      val sellOrderTokenPrice = sellOrder.R5[Long].get
+      // TODO: if both orders were in the same block who gets the spread?
+      val spreadPerToken = if (sellOrder.creationInfo._1 >=SELF.creationInfo._1) 
+        tokenPrice - sellOrderTokenPrice
+      else 
+        0L
+
+      val totalMatching = (SELF.value - expectedDexFee) == returnTokenAmount * tokenPrice && 
+        returnBox.value >=returnTokenAmount * spreadPerToken
+      val partialMatching = {
+        foundNewOrderBoxes.size == 1 && 
+          foundNewOrderBoxes(0).value == (SELF.value - returnTokenAmount * tokenPrice - expectedDexFee) &&
+          returnBox.value >=returnTokenAmount * spreadPerToken
       }
 
-      // TODO: test it cannot be stolen on partial and total matching 
-      // fixed spending sell orders to 1
-      val bestPriceDeltaReturned = spendingSellOrders.size == 1 && { 
-        val spendingSellOrdersValue = spendingSellOrders(0).R5[Long].get * returnTokenAmount
-        returnBox.value >= maxReturnTokenErgValue - spendingSellOrdersValue
-      }
+      val coinsSecured = partialMatching ||totalMatching
 
       val tokenIdIsCorrect = returnTokenId == tokenId
     
       allOf(Coll(
           tokenIdIsCorrect,
           returnTokenAmount >= 1,
-          coinsSecured,
-          bestPriceDeltaReturned
+          sellOrderTokenPrice <=tokenPrice,
+          coinsSecured
       ))
     }
       """.stripMargin
@@ -101,9 +106,19 @@ object DEXPlayground {
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == sellerPk.propBytes
       }(0)
       
+      val spendingBuyOrders = INPUTS.filter { (b: Box) => 
+        b.R4[Coll[Byte]].isDefined && b.R5[Long].isDefined && {
+          val buyOrderTokenId = b.R4[Coll[Byte]].get
+          buyOrderTokenId == tokenId && {
+            b.tokens.size == 1 && b.tokens(0)._1 == tokenId
+          }
+        }
+      }
+
       val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
         b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
+      // TODO: require spread only if we were earlier
 
       (returnBox.value == selfTokenAmount * tokenPrice) || {
         foundNewOrderBoxes.size == 1 && {
