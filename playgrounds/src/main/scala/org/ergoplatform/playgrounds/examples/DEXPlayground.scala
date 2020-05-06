@@ -53,13 +53,18 @@ object DEXPlayground {
         b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
 
-      val sellOrder = spendingSellOrders(0)
-      val sellOrderTokenPrice = sellOrder.R5[Long].get
-      // TODO: if both orders were in the same block who gets the spread?
-      val spreadPerToken = if (sellOrder.creationInfo._1 >=SELF.creationInfo._1) 
-        tokenPrice - sellOrderTokenPrice
-      else 
-        0L
+      val spreadPerToken =  {
+        if (spendingSellOrders.size == 1) {        
+          val sellOrder = spendingSellOrders(0)
+          val sellOrderTokenPrice = sellOrder.R5[Long].get
+          // TODO: if both orders were in the same block who gets the spread?
+          if (sellOrder.creationInfo._1 >=SELF.creationInfo._1 && sellOrderTokenPrice <=tokenPrice) 
+            tokenPrice - sellOrderTokenPrice
+          else 
+            0L
+        } else 
+          0L
+      }
 
       val totalMatching = (SELF.value - expectedDexFee) == returnTokenAmount * tokenPrice && 
         returnBox.value >=returnTokenAmount * spreadPerToken
@@ -76,7 +81,6 @@ object DEXPlayground {
       allOf(Coll(
           tokenIdIsCorrect,
           returnTokenAmount >= 1,
-          sellOrderTokenPrice <=tokenPrice,
           coinsSecured
       ))
     }
@@ -409,7 +413,12 @@ object DEXPlayground {
       )
 
     val buyOrderBoxValue = buyersBidTokenPrice * buyerBidTokenAmount + buyerDexFee
-    val buyOrderBox      = Box(value = buyOrderBoxValue, script = buyOrderContract)
+    val buyOrderBox = Box(
+      value     = buyOrderBoxValue,
+      script    = buyOrderContract,
+      registers = R4 -> token.tokenId,
+      R5 -> buyersBidTokenPrice
+    )
 
     val buyOrderTransaction = Transaction(
       inputs       = buyerParty.selectUnspentBoxes(toSpend = buyOrderBoxValue + buyOrderTxFee),
@@ -476,9 +485,11 @@ object DEXPlayground {
     )
 
     val sellOrderBox = Box(
-      value  = sellerDexFee,
-      token  = (token -> sellerAskTokenAmount),
-      script = sellOrderContract
+      value     = sellerDexFee,
+      token     = (token -> sellerAskTokenAmount),
+      script    = sellOrderContract,
+      registers = R4 -> token.tokenId,
+      R5 -> sellerAskTokenPrice
     )
 
     val sellerBalanceBoxes = sellerParty.selectUnspentBoxes(
