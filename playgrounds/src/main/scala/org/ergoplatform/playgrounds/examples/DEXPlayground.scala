@@ -16,6 +16,9 @@ object DEXPlayground {
     val buyerContractEnv: ScriptEnv =
       Map("buyerPk" -> buyerPk, "tokenId" -> token.tokenId)
 
+    // TODO : check that counter orders are sorted by token price
+    // TODO: if both orders were in the same block who gets the spread?
+    // TODO: move price check (from fullSpread) to boxesAreSortedByTokenPrice?
     val buyerScript = s"""buyerPk || {
 
       val tokenPrice = $tokenPrice
@@ -30,22 +33,13 @@ object DEXPlayground {
         }
       }
 
-      // TODO: check that counter orders are sorted by token price
-
-      // TODO: only part of it is matched
-      // TODO: for multiplse sell orders sort by price
-      // val spendingSellOrderTokenInfo = spendingSellOrders.map { (b: Box) => 
-      //   (b.tokens(0)._2, b.R5[Long].get)
-      // }
-      // val totalSpendingSellOrdersValue = spendingSellOrderTokenInfo.fold(0L, { (acc: Long, t: (Long, Long)) =>  
-      //   acc + (t._1 * t._2)
-      // })
-
       val returnBoxes = OUTPUTS.filter { (b: Box) => 
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == buyerPk.propBytes
       }
 
-      returnBoxes.size == 1 && {
+      val boxesAreSortedByTokenPrice = { (boxes: Coll[Box]) => true }
+
+      returnBoxes.size == 1 && spendingSellOrders.size > 0 && boxesAreSortedByTokenPrice(spendingSellOrders) && {
         val returnBox = returnBoxes(0)
         val returnTokenAmount = if (returnBox.tokens.size == 1) returnBox.tokens(0)._2 else 0L
         
@@ -57,16 +51,29 @@ object DEXPlayground {
         }
 
         val fullSpread = {
-          if (spendingSellOrders.size == 1) {        
-            val sellOrder = spendingSellOrders(0)
+          spendingSellOrders.fold((returnTokenAmount, 0L), { (t: (Long, Long), sellOrder: Box) => 
+            val returnTokensLeft = t._1
+            val accumulatedFullSpread = t._2
             val sellOrderTokenPrice = sellOrder.R5[Long].get
-            // TODO: if both orders were in the same block who gets the spread?
-            if (sellOrder.creationInfo._1 >= SELF.creationInfo._1 && sellOrderTokenPrice <= tokenPrice) 
-              (tokenPrice - sellOrderTokenPrice) * returnTokenAmount
-            else 
-              0L
-          } else 
-            0L
+            val sellOrderTokenAmount = sellOrder.tokens(0)._2
+            if (sellOrder.creationInfo._1 >= SELF.creationInfo._1 && sellOrderTokenPrice <= tokenPrice) {
+              // spread is ours
+              val spreadPerToken = tokenPrice - sellOrderTokenPrice
+              // TODO: rewrite with min(returnTokensLeft, sellOrderTokenAmount)?
+              if (returnTokensLeft < sellOrderTokenAmount) {
+                val sellOrderSpread = spreadPerToken * returnTokensLeft
+                (0L, accumulatedFullSpread + sellOrderSpread)
+              } else {
+                val sellOrderSpread = spreadPerToken * sellOrderTokenAmount
+                (returnTokensLeft - sellOrderTokenAmount, accumulatedFullSpread + sellOrderSpread)
+              }
+            }
+            else {
+              // spread is not ours
+              (returnTokensLeft - min(returnTokensLeft, sellOrderTokenAmount), accumulatedFullSpread)
+            }
+          })._2
+
         }
 
         val totalMatching = (SELF.value - expectedDexFee) == returnTokenAmount * tokenPrice && 
