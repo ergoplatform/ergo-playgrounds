@@ -56,13 +56,13 @@ object DEXPlayground {
           b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
         }
 
-        val spreadPerToken =  {
+        val fullSpread = {
           if (spendingSellOrders.size == 1) {        
             val sellOrder = spendingSellOrders(0)
             val sellOrderTokenPrice = sellOrder.R5[Long].get
             // TODO: if both orders were in the same block who gets the spread?
-            if (sellOrder.creationInfo._1 >=SELF.creationInfo._1 && sellOrderTokenPrice <=tokenPrice) 
-              tokenPrice - sellOrderTokenPrice
+            if (sellOrder.creationInfo._1 >= SELF.creationInfo._1 && sellOrderTokenPrice <= tokenPrice) 
+              (tokenPrice - sellOrderTokenPrice) * returnTokenAmount
             else 
               0L
           } else 
@@ -70,11 +70,11 @@ object DEXPlayground {
         }
 
         val totalMatching = (SELF.value - expectedDexFee) == returnTokenAmount * tokenPrice && 
-          returnBox.value >=returnTokenAmount * spreadPerToken
+          returnBox.value >= fullSpread
         val partialMatching = {
           foundNewOrderBoxes.size == 1 && 
             foundNewOrderBoxes(0).value == (SELF.value - returnTokenAmount * tokenPrice - expectedDexFee) &&
-            returnBox.value >=returnTokenAmount * spreadPerToken
+            returnBox.value >= fullSpread
         }
 
         val coinsSecured = partialMatching ||totalMatching
@@ -514,9 +514,9 @@ object DEXPlayground {
     val cancelTxFee = MinTxFee
 
     val sellerReturnBox = Box(
-      value = sellOrderBox.value - cancelTxFee,
-      token = (token -> sellerAskTokenAmount),
-      script    = contract(sellerParty.wallet.getAddress.pubKey)
+      value  = sellOrderBox.value - cancelTxFee,
+      token  = (token -> sellerAskTokenAmount),
+      script = contract(sellerParty.wallet.getAddress.pubKey)
     )
 
     val cancelSellTransaction = Transaction(
