@@ -43,9 +43,8 @@ object DEXPlayground {
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == buyerPk.propBytes
       }(0)
 
-      val returnTokenData = returnBox.tokens(0)
-      val returnTokenId = returnTokenData._1
-      val returnTokenAmount = returnTokenData._2
+      val returnTokenAmount = if (returnBox.tokens.size == 1) returnBox.tokens(0)._2 else 0L
+      
       val expectedDexFee = dexFeePerToken * returnTokenAmount
       
       val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
@@ -76,8 +75,8 @@ object DEXPlayground {
 
       val coinsSecured = partialMatching ||totalMatching
 
-      val tokenIdIsCorrect = returnTokenId == tokenId
-    
+      val tokenIdIsCorrect = returnBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == tokenId
+      
       allOf(Coll(
           tokenIdIsCorrect,
           returnTokenAmount >= 1,
@@ -437,8 +436,6 @@ object DEXPlayground {
 
     val buyerReturnBox = Box(
       value = buyOrderBox.value - cancelTxFee,
-      // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
-      token = (blockchainSim.newToken("DEXCNCL") -> 1L),
       // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
       registers = (R4 -> buyOrderTxSigned.outputs(0).id),
       script    = contract(buyerParty.wallet.getAddress.pubKey)
