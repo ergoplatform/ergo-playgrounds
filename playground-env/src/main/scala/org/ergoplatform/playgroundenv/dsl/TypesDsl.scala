@@ -1,6 +1,10 @@
 package org.ergoplatform.playgroundenv.dsl
 
+import sigmastate.eval.CompiletimeIRContext
+
 trait TypesDsl {
+
+  implicit protected def IR: CompiletimeIRContext;
 
   type Coll[A]              = special.collection.Coll[A]
   type SigmaProp            = special.sigma.SigmaProp
