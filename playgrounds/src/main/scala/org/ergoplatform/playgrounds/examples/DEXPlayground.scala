@@ -16,9 +16,9 @@ object DEXPlayground {
     val buyerContractEnv: ScriptEnv =
       Map("buyerPk" -> buyerPk, "tokenId" -> token.tokenId)
 
-    // TODO : check that counter orders are sorted by token price
-    // TODO: if both orders were in the same block who gets the spread?
+    // TODO: check that counter orders are sorted by token price
     // TODO: move price check (from fullSpread) to boxesAreSortedByTokenPrice?
+    // TODO: if both orders were in the same block who gets the spread?
     val buyerScript = s"""buyerPk || {
 
       val tokenPrice = $tokenPrice
@@ -59,14 +59,9 @@ object DEXPlayground {
             if (sellOrder.creationInfo._1 >= SELF.creationInfo._1 && sellOrderTokenPrice <= tokenPrice) {
               // spread is ours
               val spreadPerToken = tokenPrice - sellOrderTokenPrice
-              // TODO: rewrite with min(returnTokensLeft, sellOrderTokenAmount)?
-              if (returnTokensLeft < sellOrderTokenAmount) {
-                val sellOrderSpread = spreadPerToken * returnTokensLeft
-                (0L, accumulatedFullSpread + sellOrderSpread)
-              } else {
-                val sellOrderSpread = spreadPerToken * sellOrderTokenAmount
-                (returnTokensLeft - sellOrderTokenAmount, accumulatedFullSpread + sellOrderSpread)
-              }
+              val tokenAmount = min(returnTokensLeft, sellOrderTokenAmount)
+              val sellOrderSpread = spreadPerToken * tokenAmount
+              (returnTokensLeft - tokenAmount, accumulatedFullSpread + sellOrderSpread)
             }
             else {
               // spread is not ours
