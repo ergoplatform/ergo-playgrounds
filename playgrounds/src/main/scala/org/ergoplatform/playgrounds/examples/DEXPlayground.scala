@@ -30,6 +30,8 @@ object DEXPlayground {
         }
       }
 
+      // TODO: check that counter orders are sorted by token price
+
       // TODO: only part of it is matched
       // TODO: for multiplse sell orders sort by price
       // val spendingSellOrderTokenInfo = spendingSellOrders.map { (b: Box) => 
