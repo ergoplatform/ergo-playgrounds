@@ -109,54 +109,57 @@ object DEXPlayground {
 
       val selfTokenAmount = SELF.tokens(0)._2
 
-      val returnBox = OUTPUTS.filter { (b: Box) => 
+      val returnBoxes = OUTPUTS.filter { (b: Box) => 
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == sellerPk.propBytes
-      }(0)
-      
-      val spendingBuyOrders = INPUTS.filter { (b: Box) => 
-        b.R4[Coll[Byte]].isDefined && b.R5[Long].isDefined && {
-          val buyOrderTokenId = b.R4[Coll[Byte]].get
-          buyOrderTokenId == tokenId && {
-            b.tokens.size == 1 && b.tokens(0)._1 == tokenId
+      }
+
+      returnBoxes.size == 1 && {
+        val returnBox = returnBoxes(0)
+        val spendingBuyOrders = INPUTS.filter { (b: Box) => 
+          b.R4[Coll[Byte]].isDefined && b.R5[Long].isDefined && {
+            val buyOrderTokenId = b.R4[Coll[Byte]].get
+            buyOrderTokenId == tokenId && {
+              b.tokens.size == 1 && b.tokens(0)._1 == tokenId
+            }
           }
         }
-      }
 
-      val buyOrder = spendingBuyOrders(0)
+        val buyOrder = spendingBuyOrders(0)
 
-      val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
-        val contractParametersAreCorrect = b.R4[Coll[Byte]].get == tokenId && b.R5[Long].get == tokenPrice
-        val contractIsTheSame = b.propositionBytes == SELF.propositionBytes
-        b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && contractIsTheSame
-      }
-
-      val buyOrderTokenPrice = buyOrder.R5[Long].get
-      val spreadPerToken = if (buyOrder.creationInfo._1 > SELF.creationInfo._1) 
-         buyOrderTokenPrice - tokenPrice
-      else 
-        0L
-
-      val totalMatching = (returnBox.value == selfTokenAmount * (tokenPrice + spreadPerToken)) 
-
-      val partialMatching = {
-        foundNewOrderBoxes.size == 1 && {
-          val newOrderBox = foundNewOrderBoxes(0)
-          val newOrderTokenData = newOrderBox.tokens(0)
-          val newOrderTokenAmount = newOrderTokenData._2
-          val soldTokenAmount = selfTokenAmount - newOrderTokenAmount
-          val minSoldTokenErgValue = soldTokenAmount * tokenPrice
-          val expectedDexFee = dexFeePerToken * soldTokenAmount
-
-          val newOrderTokenId = newOrderTokenData._1
-          val tokenIdIsCorrect = newOrderTokenId == tokenId
-
-          val newOrderValueIsCorrect = newOrderBox.value == (SELF.value - expectedDexFee)
-          val returnBoxValueIsCorrect = returnBox.value == soldTokenAmount * (tokenPrice + spreadPerToken)
-          tokenIdIsCorrect && soldTokenAmount >= 1 && newOrderValueIsCorrect && returnBoxValueIsCorrect
+        val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
+          val contractParametersAreCorrect = b.R4[Coll[Byte]].get == tokenId && b.R5[Long].get == tokenPrice
+          val contractIsTheSame = b.propositionBytes == SELF.propositionBytes
+          b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && contractIsTheSame
         }
-      }
 
-      (totalMatching ||partialMatching) && buyOrderTokenPrice >=tokenPrice
+        val buyOrderTokenPrice = buyOrder.R5[Long].get
+        val spreadPerToken = if (buyOrder.creationInfo._1 > SELF.creationInfo._1) 
+           buyOrderTokenPrice - tokenPrice
+        else 
+          0L
+
+        val totalMatching = (returnBox.value == selfTokenAmount * (tokenPrice + spreadPerToken)) 
+
+        val partialMatching = {
+          foundNewOrderBoxes.size == 1 && {
+            val newOrderBox = foundNewOrderBoxes(0)
+            val newOrderTokenData = newOrderBox.tokens(0)
+            val newOrderTokenAmount = newOrderTokenData._2
+            val soldTokenAmount = selfTokenAmount - newOrderTokenAmount
+            val minSoldTokenErgValue = soldTokenAmount * tokenPrice
+            val expectedDexFee = dexFeePerToken * soldTokenAmount
+
+            val newOrderTokenId = newOrderTokenData._1
+            val tokenIdIsCorrect = newOrderTokenId == tokenId
+
+            val newOrderValueIsCorrect = newOrderBox.value == (SELF.value - expectedDexFee)
+            val returnBoxValueIsCorrect = returnBox.value == soldTokenAmount * (tokenPrice + spreadPerToken)
+            tokenIdIsCorrect && soldTokenAmount >= 1 && newOrderValueIsCorrect && returnBoxValueIsCorrect
+          }
+        }
+
+        (totalMatching ||partialMatching) && buyOrderTokenPrice >=tokenPrice
+      }
 
       }""".stripMargin
 
@@ -511,8 +514,6 @@ object DEXPlayground {
     val sellerReturnBox = Box(
       value = sellOrderBox.value - cancelTxFee,
       token = (token -> sellerAskTokenAmount),
-      // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
-      registers = (R4 -> sellOrderTxSigned.outputs(0).id),
       script    = contract(sellerParty.wallet.getAddress.pubKey)
     )
 
