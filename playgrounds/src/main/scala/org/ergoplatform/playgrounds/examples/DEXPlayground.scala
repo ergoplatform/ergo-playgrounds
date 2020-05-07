@@ -39,49 +39,52 @@ object DEXPlayground {
       //   acc + (t._1 * t._2)
       // })
 
-      val returnBox = OUTPUTS.filter { (b: Box) => 
+      val returnBoxes = OUTPUTS.filter { (b: Box) => 
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == buyerPk.propBytes
-      }(0)
-
-      val returnTokenAmount = if (returnBox.tokens.size == 1) returnBox.tokens(0)._2 else 0L
-      
-      val expectedDexFee = dexFeePerToken * returnTokenAmount
-      
-      val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
-        val contractParametersAreCorrect = b.R4[Coll[Byte]].get == tokenId && b.R5[Long].get == tokenPrice
-        b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
       }
 
-      val spreadPerToken =  {
-        if (spendingSellOrders.size == 1) {        
-          val sellOrder = spendingSellOrders(0)
-          val sellOrderTokenPrice = sellOrder.R5[Long].get
-          // TODO: if both orders were in the same block who gets the spread?
-          if (sellOrder.creationInfo._1 >=SELF.creationInfo._1 && sellOrderTokenPrice <=tokenPrice) 
-            tokenPrice - sellOrderTokenPrice
-          else 
+      returnBoxes.size == 1 && {
+        val returnBox = returnBoxes(0)
+        val returnTokenAmount = if (returnBox.tokens.size == 1) returnBox.tokens(0)._2 else 0L
+        
+        val expectedDexFee = dexFeePerToken * returnTokenAmount
+        
+        val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
+          val contractParametersAreCorrect = b.R4[Coll[Byte]].get == tokenId && b.R5[Long].get == tokenPrice
+          b.R6[Coll[Byte]].isDefined && b.R6[Coll[Byte]].get == SELF.id && b.propositionBytes == SELF.propositionBytes
+        }
+
+        val spreadPerToken =  {
+          if (spendingSellOrders.size == 1) {        
+            val sellOrder = spendingSellOrders(0)
+            val sellOrderTokenPrice = sellOrder.R5[Long].get
+            // TODO: if both orders were in the same block who gets the spread?
+            if (sellOrder.creationInfo._1 >=SELF.creationInfo._1 && sellOrderTokenPrice <=tokenPrice) 
+              tokenPrice - sellOrderTokenPrice
+            else 
+              0L
+          } else 
             0L
-        } else 
-          0L
-      }
+        }
 
-      val totalMatching = (SELF.value - expectedDexFee) == returnTokenAmount * tokenPrice && 
-        returnBox.value >=returnTokenAmount * spreadPerToken
-      val partialMatching = {
-        foundNewOrderBoxes.size == 1 && 
-          foundNewOrderBoxes(0).value == (SELF.value - returnTokenAmount * tokenPrice - expectedDexFee) &&
+        val totalMatching = (SELF.value - expectedDexFee) == returnTokenAmount * tokenPrice && 
           returnBox.value >=returnTokenAmount * spreadPerToken
+        val partialMatching = {
+          foundNewOrderBoxes.size == 1 && 
+            foundNewOrderBoxes(0).value == (SELF.value - returnTokenAmount * tokenPrice - expectedDexFee) &&
+            returnBox.value >=returnTokenAmount * spreadPerToken
+        }
+
+        val coinsSecured = partialMatching ||totalMatching
+
+        val tokenIdIsCorrect = returnBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == tokenId
+        
+        allOf(Coll(
+            tokenIdIsCorrect,
+            returnTokenAmount >= 1,
+            coinsSecured
+        ))
       }
-
-      val coinsSecured = partialMatching ||totalMatching
-
-      val tokenIdIsCorrect = returnBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == tokenId
-      
-      allOf(Coll(
-          tokenIdIsCorrect,
-          returnTokenAmount >= 1,
-          coinsSecured
-      ))
     }
       """.stripMargin
 
@@ -435,10 +438,8 @@ object DEXPlayground {
     val cancelTxFee = MinTxFee
 
     val buyerReturnBox = Box(
-      value = buyOrderBox.value - cancelTxFee,
-      // as a workaround for https://github.com/ScorexFoundation/sigmastate-interpreter/issues/628
-      registers = (R4 -> buyOrderTxSigned.outputs(0).id),
-      script    = contract(buyerParty.wallet.getAddress.pubKey)
+      value  = buyOrderBox.value - cancelTxFee,
+      script = contract(buyerParty.wallet.getAddress.pubKey)
     )
 
     val cancelBuyTransaction = Transaction(
