@@ -17,6 +17,7 @@ object DEXPlayground {
       Map("buyerPk" -> buyerPk, "tokenId" -> token.tokenId)
 
     // TODO: check that counter orders are sorted by token price
+    // TODO: show contract cost
     // TODO: move price check (from fullSpread) to boxesAreSortedByTokenPrice?
     // TODO: if both orders were in the same block who gets the spread?
     val buyerScript = s"""buyerPk || {
@@ -37,7 +38,14 @@ object DEXPlayground {
         b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == SELF.id && b.propositionBytes == buyerPk.propBytes
       }
 
-      val boxesAreSortedByTokenPrice = { (boxes: Coll[Box]) => true }
+      val boxesAreSortedByTokenPrice = { (boxes: Coll[Box]) => 
+        boxes.fold((0L, true), { (t: (Long, Boolean), box: Box) => 
+          val prevBoxTokenPrice = t._1
+          val isSorted = t._2
+          val boxTokenPrice = box.R5[Long].getOrElse(0L)
+          (boxTokenPrice, isSorted && boxTokenPrice >= prevBoxTokenPrice)
+        })._2
+      }
 
       returnBoxes.size == 1 && spendingSellOrders.size > 0 && boxesAreSortedByTokenPrice(spendingSellOrders) && {
         val returnBox = returnBoxes(0)
