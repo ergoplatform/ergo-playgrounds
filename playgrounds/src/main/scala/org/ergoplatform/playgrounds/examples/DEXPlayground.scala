@@ -16,10 +16,6 @@ object DEXPlayground {
     val buyerContractEnv: ScriptEnv =
       Map("buyerPk" -> buyerPk, "tokenId" -> token.tokenId)
 
-    // TODO: put contract type (sell/buy) in register and check in INPUTS filter?
-    // TODO: show contract cost
-    // TODO: move price check (from fullSpread) to boxesAreSortedByTokenPrice?
-    // TODO: if both orders were in the same block who gets the spread?
     val buyerScript = s"""buyerPk || {
 
       val tokenPrice = $tokenPrice
