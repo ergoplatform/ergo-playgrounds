@@ -82,7 +82,7 @@ object DEXPlayground {
             returnBox.value >= fullSpread
         }
 
-        val coinsSecured = partialMatching ||totalMatching
+        val coinsSecured = partialMatching || totalMatching
 
         val tokenIdIsCorrect = returnBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == tokenId
         
