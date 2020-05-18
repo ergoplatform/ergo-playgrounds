@@ -145,9 +145,13 @@ object DEXPlayground {
         val returnBox = returnBoxes(0)
 
         val foundNewOrderBoxes = OUTPUTS.filter { (b: Box) => 
-          val contractParametersAreCorrect = b.R4[Coll[Byte]].get == tokenId && b.R5[Long].get == tokenPrice
-          val contractIsTheSame = b.propositionBytes == SELF.propositionBytes
-          b.R7[Coll[Byte]].isDefined && b.R7[Coll[Byte]].get == SELF.id && contractIsTheSame
+          val tokenIdParameterIsCorrect = b.R4[Coll[Byte]].isDefined && b.R4[Coll[Byte]].get == tokenId 
+          val tokenPriceParameterIsCorrect = b.R5[Long].isDefined && b.R5[Long].get == tokenPrice
+          val dexFeePerTokenParameterIsCorrect = b.R6[Long].isDefined && b.R6[Long].get == dexFeePerToken
+          val contractParametersAreCorrect = tokenIdParameterIsCorrect && tokenPriceParameterIsCorrect
+          val referenceMe = b.R7[Coll[Byte]].isDefined && b.R7[Coll[Byte]].get == SELF.id 
+          val guardedByTheSameContract = b.propositionBytes == SELF.propositionBytes
+          contractParametersAreCorrect && referenceMe && guardedByTheSameContract
         }
 
         val fullSpread = { (tokenAmount: Long) =>
