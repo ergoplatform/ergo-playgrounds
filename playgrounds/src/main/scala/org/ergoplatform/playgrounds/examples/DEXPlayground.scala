@@ -161,7 +161,7 @@ object DEXPlayground {
             val buyOrderTokenPrice = buyOrder.R5[Long].get
             val buyOrderDexFeePerToken = buyOrder.R6[Long].get
             val buyOrderTokenAmount = buyOrder.value / (buyOrderTokenPrice + buyOrderDexFeePerToken)
-            if (buyOrder.creationInfo._1 >= SELF.creationInfo._1 && buyOrderTokenPrice <= tokenPrice) {
+            if (buyOrder.creationInfo._1 > SELF.creationInfo._1 && buyOrderTokenPrice <= tokenPrice) {
               // spread is ours
               val spreadPerToken = tokenPrice - buyOrderTokenPrice
               val tokenAmountLeft = min(returnTokensLeft, buyOrderTokenAmount)
