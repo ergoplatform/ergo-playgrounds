@@ -45,3 +45,4 @@ spam-tests/
 .metals/
 project/metals.sbt
 .vscode/
+/project/project/
