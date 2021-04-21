@@ -5,9 +5,10 @@ import org.ergoplatform.playgroundenv.models.TokenAmount
 import org.ergoplatform.{ErgoBox, ErgoBoxCandidate}
 import scorex.crypto.hash.Digest32
 import sigmastate.SType
-import sigmastate.Values.{ByteArrayConstant, EvaluatedValue}
+import sigmastate.Values.{BooleanConstant, ByteArrayConstant, ByteConstant, EvaluatedValue, GroupElementConstant, IntConstant, LongConstant, ShortConstant, SigmaBoolean, SigmaPropConstant}
 import sigmastate.eval.Extensions._
 import sigmastate.eval._
+import special.sigma.GroupElement
 
 import scala.language.implicitConversions
 
@@ -37,13 +38,21 @@ trait BoxDsl extends TypesDsl {
 
   private def liftVal[T](v: T): EvaluatedValue[SType] = v match {
     case ba: Array[Byte] => ByteArrayConstant(ba)
+    case by: Byte => ByteConstant(by)
+    case s: Short => ShortConstant(s)
+    case i: Int => IntConstant(i)
+    case l: Long => LongConstant(l)
+    case b: Boolean => BooleanConstant(b)
+    case ge: GroupElement => GroupElementConstant(ge)
+    case sb: SigmaBoolean => SigmaPropConstant(sb)
+    case sp: SigmaProp => SigmaPropConstant(sp)
   }
 
   def Box[T](
-    value: Long,
-    register: (NonMandatoryRegisterId, T),
-    script: ErgoContract
-  ): ErgoBoxCandidate = {
+              value: Long,
+              register: (NonMandatoryRegisterId, T),
+              script: ErgoContract
+            ): ErgoBoxCandidate = {
     require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
       value,
@@ -55,11 +64,26 @@ trait BoxDsl extends TypesDsl {
   }
 
   def Box(
-    value: Long,
-    token: (TokenInfo, Long),
-    register: (NonMandatoryRegisterId, Any),
-    script: ErgoContract
-  ): ErgoBoxCandidate = {
+           value: Long,
+           registers: Map[NonMandatoryRegisterId, Any],
+           script: ErgoContract
+         ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      Array[(TokenId, Long)]().toColl,
+      registers.mapValues(liftVal)
+    )
+  }
+
+  def Box(
+           value: Long,
+           token: (TokenInfo, Long),
+           register: (NonMandatoryRegisterId, Any),
+           script: ErgoContract
+         ): ErgoBoxCandidate = {
     require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(
       value,
@@ -69,4 +93,21 @@ trait BoxDsl extends TypesDsl {
       Map((register._1, liftVal(register._2)))
     )
   }
+
+  def Box(
+           value: Long,
+           token: (TokenInfo, Long),
+           registers: Map[NonMandatoryRegisterId, Any],
+           script: ErgoContract
+         ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      Array[(TokenId, Long)]((Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
+      registers.mapValues(liftVal)
+    )
+  }
+
 }
