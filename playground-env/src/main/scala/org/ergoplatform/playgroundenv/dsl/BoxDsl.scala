@@ -5,9 +5,10 @@ import org.ergoplatform.playgroundenv.models.TokenAmount
 import org.ergoplatform.{ErgoBox, ErgoBoxCandidate}
 import scorex.crypto.hash.Digest32
 import sigmastate.SType
-import sigmastate.Values.{ByteArrayConstant, EvaluatedValue}
+import sigmastate.Values.{BooleanConstant, ByteArrayConstant, ByteConstant, EvaluatedValue, GroupElementConstant, IntConstant, LongConstant, ShortConstant, SigmaBoolean, SigmaPropConstant}
 import sigmastate.eval.Extensions._
 import sigmastate.eval._
+import special.sigma.GroupElement
 
 import scala.language.implicitConversions
 
@@ -37,6 +38,14 @@ trait BoxDsl extends TypesDsl {
 
   private def liftVal[T](v: T): EvaluatedValue[SType] = v match {
     case ba: Array[Byte] => ByteArrayConstant(ba)
+    case by: Byte => ByteConstant(by)
+    case s: Short => ShortConstant(s)
+    case i: Int => IntConstant(i)
+    case l: Long => LongConstant(l)
+    case b: Boolean => BooleanConstant(b)
+    case ge: GroupElement => GroupElementConstant(ge)
+    case sb: SigmaBoolean => SigmaPropConstant(sb)
+    case sp: SigmaProp => SigmaPropConstant(sp)
   }
 
   def Box[T](
