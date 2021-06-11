@@ -8,6 +8,9 @@ Enjoy:
 - seamless on-chain < - > off-chain code integration;
 - immediate feedback.
 
+## Version
+CI will publish a snapshot version on succes. Check the version number in build logs. As of 11/06/21 the latest version is `0.0.0-76-0fd15a64-SNAPSHOT`.
+
 ## Examples:
 
 ### DEX with partial filling contracts
