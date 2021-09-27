@@ -23,13 +23,14 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
 
   private var boxes: mutable.ArrayBuffer[ErgoBox]         = new mutable.ArrayBuffer[ErgoBox]()
   private val tokenNames: mutable.Map[ModifierId, String] = mutable.Map()
+  private var chainHeight: Int                            = 0
 
   private def getUnspentBoxesFor(address: Address): List[ErgoBox] =
     boxes.filter { b =>
       contract(address.pubKey).ergoTree == b.ergoTree
     }.toList
 
-  val stateContext: ErgoLikeStateContext = new ErgoLikeStateContext {
+  def stateContext: ErgoLikeStateContext = new ErgoLikeStateContext {
 
     override def sigmaLastHeaders: Coll[Header] = Colls.emptyColl
 
@@ -44,7 +45,7 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
       parentId  = Colls.emptyColl[Byte],
       timestamp = 0,
       nBits     = 0,
-      height    = 0,
+      height    = chainHeight,
       minerPk   = CGroupElement(CryptoConstants.dlogGroup.generator),
       votes     = Colls.emptyColl[Byte]
     )
@@ -145,4 +146,8 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
         TokenAmount(TokenInfo(t._1.toColl, tokenNames(t._1.toModifierId)), t._2)
       }
     }
+
+  def getHeight: Int = chainHeight
+
+  def setHeight(height: Int): Unit = { chainHeight = height }
 }
