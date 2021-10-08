@@ -21,8 +21,10 @@ import org.ergoplatform.playgroundenv.utils.TransactionVerifier
 case class DummyBlockchainSimulationImpl(scenarioName: String)
   extends BlockchainSimulation {
 
-  private var boxes: mutable.ArrayBuffer[ErgoBox]         = new mutable.ArrayBuffer[ErgoBox]()
-  private var unspentBoxes: mutable.ArrayBuffer[ErgoBox]  = new mutable.ArrayBuffer[ErgoBox]()
+  private var boxes: mutable.ArrayBuffer[ErgoBox] = new mutable.ArrayBuffer[ErgoBox]()
+
+  private var unspentBoxes: mutable.ArrayBuffer[ErgoBox] =
+    new mutable.ArrayBuffer[ErgoBox]()
   private val tokenNames: mutable.Map[ModifierId, String] = mutable.Map()
   private var chainHeight: Int                            = 0
 
@@ -86,12 +88,12 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
       tokenNames += (t.token.tokenId.toArray.toModifierId -> t.token.tokenName)
     }
     val b = ErgoBox(
-      value            = toSpend,
-      ergoTree         = contract(address.pubKey).ergoTree,
-      creationHeight   = 0,
+      value          = toSpend,
+      ergoTree       = contract(address.pubKey).ergoTree,
+      creationHeight = 0,
       additionalTokens =
         tokensToSpend.map(ta => (Digest32 @@ ta.token.tokenId.toArray, ta.tokenAmount))
-      )
+    )
     unspentBoxes.append(b)
     boxes.append(b)
   }
@@ -122,14 +124,15 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
   }
 
   override def send(tx: ErgoLikeTransaction): Unit = {
-    val boxesToSpend = tx.inputs.map(i => getUnspentBox(i.boxId)).toIndexedSeq
+    val boxesToSpend   = tx.inputs.map(i => getUnspentBox(i.boxId)).toIndexedSeq
     val dataInputBoxes = tx.dataInputs.map(i => getBox(i.boxId)).toIndexedSeq
     TransactionVerifier.verify(tx, boxesToSpend, dataInputBoxes, parameters, stateContext)
 
     val newBoxes: mutable.ArrayBuffer[ErgoBox] = new mutable.ArrayBuffer[ErgoBox]()
     newBoxes.appendAll(tx.outputs)
     newBoxes.appendAll(
-      unspentBoxes.filterNot(b => tx.inputs.map(_.boxId.toModifierId).contains(b.id.toModifierId)
+      unspentBoxes.filterNot(b =>
+        tx.inputs.map(_.boxId.toModifierId).contains(b.id.toModifierId)
       )
     )
     unspentBoxes = newBoxes
@@ -156,4 +159,5 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
   def getHeight: Int = chainHeight
 
   def setHeight(height: Int): Unit = { chainHeight = height }
+}
 }
