@@ -22,11 +22,12 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
   extends BlockchainSimulation {
 
   private var boxes: mutable.ArrayBuffer[ErgoBox]         = new mutable.ArrayBuffer[ErgoBox]()
+  private var unspentBoxes: mutable.ArrayBuffer[ErgoBox]  = new mutable.ArrayBuffer[ErgoBox]()
   private val tokenNames: mutable.Map[ModifierId, String] = mutable.Map()
   private var chainHeight: Int                            = 0
 
   private def getUnspentBoxesFor(address: Address): List[ErgoBox] =
-    boxes.filter { b =>
+    unspentBoxes.filter { b =>
       contract(address.pubKey).ergoTree == b.ergoTree
     }.toList
 
@@ -84,15 +85,15 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
     tokensToSpend.foreach { t =>
       tokenNames += (t.token.tokenId.toArray.toModifierId -> t.token.tokenName)
     }
-    boxes.append(
-      ErgoBox(
-        value          = toSpend,
-        ergoTree       = contract(address.pubKey).ergoTree,
-        creationHeight = 0,
-        additionalTokens =
-          tokensToSpend.map(ta => (Digest32 @@ ta.token.tokenId.toArray, ta.tokenAmount))
+    val b = ErgoBox(
+      value            = toSpend,
+      ergoTree         = contract(address.pubKey).ergoTree,
+      creationHeight   = 0,
+      additionalTokens =
+        tokensToSpend.map(ta => (Digest32 @@ ta.token.tokenId.toArray, ta.tokenAmount))
       )
-    )
+    unspentBoxes.append(b)
+    boxes.append(b)
   }
 
   def selectUnspentBoxesFor(
@@ -101,11 +102,14 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
     tokensToSpend: List[TokenAmount]
   ): List[ErgoBox] = {
     val treeToFind = contract(address.pubKey).ergoTree
-    val filtered = boxes.filter { b =>
+    val filtered = unspentBoxes.filter { b =>
       b.ergoTree == treeToFind
     }.toList
     filtered
   }
+
+  def getUnspentBox(id: BoxId): ErgoBox =
+    unspentBoxes.find(b => java.util.Arrays.equals(b.id, id)).get
 
   def getBox(id: BoxId): ErgoBox =
     boxes.find(b => java.util.Arrays.equals(b.id, id)).get
@@ -118,16 +122,18 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
   }
 
   override def send(tx: ErgoLikeTransaction): Unit = {
-    val boxesToSpend = tx.inputs.map(i => getBox(i.boxId)).toIndexedSeq
-    TransactionVerifier.verify(tx, boxesToSpend, parameters, stateContext)
+    val boxesToSpend = tx.inputs.map(i => getUnspentBox(i.boxId)).toIndexedSeq
+    val dataInputBoxes = tx.dataInputs.map(i => getBox(i.boxId)).toIndexedSeq
+    TransactionVerifier.verify(tx, boxesToSpend, dataInputBoxes, parameters, stateContext)
 
     val newBoxes: mutable.ArrayBuffer[ErgoBox] = new mutable.ArrayBuffer[ErgoBox]()
     newBoxes.appendAll(tx.outputs)
     newBoxes.appendAll(
-      boxes.filterNot(b => tx.inputs.map(_.boxId.toModifierId).contains(b.id.toModifierId)
+      unspentBoxes.filterNot(b => tx.inputs.map(_.boxId.toModifierId).contains(b.id.toModifierId)
       )
     )
-    boxes = newBoxes
+    unspentBoxes = newBoxes
+    boxes.appendAll(tx.outputs)
     println(s"..$scenarioName: Accepting transaction ${tx.id} to the blockchain")
   }
 
