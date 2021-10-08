@@ -160,4 +160,3 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
 
   def setHeight(height: Int): Unit = { chainHeight = height }
 }
-
