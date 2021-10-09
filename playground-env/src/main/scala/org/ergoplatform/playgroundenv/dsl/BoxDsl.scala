@@ -121,4 +121,50 @@ trait BoxDsl extends TypesDsl {
     )
   }
 
+  def Box(
+    value: Long,
+    tokens: List[(TokenInfo, Long)],
+    script: ErgoContract
+  ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      tokens.map(token => (Digest32 @@ token._1.tokenId.toArray, token._2)).toColl
+    )
+  }
+
+  def Box(
+    value: Long,
+    tokens: List[(TokenInfo, Long)],
+    register: (NonMandatoryRegisterId, Any),
+    script: ErgoContract
+  ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      tokens.map(token => (Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
+      Map((register._1, liftVal(register._2)))
+    )
+  }
+
+  def Box(
+    value: Long,
+    tokens: List[(TokenInfo, Long)],
+    registers: Map[NonMandatoryRegisterId, Any],
+    script: ErgoContract
+  ): ErgoBoxCandidate = {
+    require(value > 0, s"box value shoulde be > 0, got $value")
+    new ErgoBoxCandidate(
+      value,
+      script.ergoTree,
+      0,
+      tokens.map(token => (Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
+      registers.mapValues(liftVal)
+    )
+  }
+
 }
