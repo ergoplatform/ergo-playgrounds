@@ -27,6 +27,22 @@ trait TransactionDsl extends BoxDsl {
 
   def Transaction(
     inputs: List[ErgoBox],
+    dataInputs: List[DataInput],
+    outputs: List[ErgoBoxCandidate],
+    fee: Long
+  ): UnsignedErgoLikeTransaction = {
+    TransactionOperations.buildUnsignedErgoTx(
+      inputs.toIndexedSeq,
+      dataInputs.toIndexedSeq,
+      outputs,
+      fee,
+      None,
+      0
+    )
+  }
+
+  def Transaction(
+    inputs: List[ErgoBox],
     outputs: List[ErgoBoxCandidate],
     fee: Long,
     sendChangeTo: Address
@@ -34,6 +50,23 @@ trait TransactionDsl extends BoxDsl {
     TransactionOperations.buildUnsignedErgoTx(
       inputs.toIndexedSeq,
       IndexedSeq(),
+      outputs,
+      fee,
+      Some(P2PKAddress(sendChangeTo.proveDlog)),
+      0
+    )
+  }
+
+  def Transaction(
+    inputs: List[ErgoBox],
+    dataInputs: List[DataInput],
+    outputs: List[ErgoBoxCandidate],
+    fee: Long,
+    sendChangeTo: Address
+  ): UnsignedErgoLikeTransaction = {
+    TransactionOperations.buildUnsignedErgoTx(
+      inputs.toIndexedSeq,
+      dataInputs.toIndexedSeq,
       outputs,
       fee,
       Some(P2PKAddress(sendChangeTo.proveDlog)),
