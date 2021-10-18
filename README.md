@@ -9,7 +9,7 @@ Enjoy:
 - immediate feedback.
 
 ## Version
-CI will publish a snapshot version on succes. Check the version number in build logs. As of 11/06/21 the latest version is `0.0.0-76-0fd15a64-SNAPSHOT`.
+CI will publish a snapshot version on success. Check the version number in build logs. As of 17/10/21 the latest version of `ergo-playground-env` is `0.0.0-88-a781666a-SNAPSHOT`.
 
 ## Examples:
 

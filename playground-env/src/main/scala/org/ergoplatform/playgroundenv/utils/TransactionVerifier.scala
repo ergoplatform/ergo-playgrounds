@@ -25,10 +25,10 @@ object TransactionVerifier {
   def verify(
     tx: ErgoLikeTransaction,
     boxesToSpend: IndexedSeq[ErgoBox],
+    dataInputBoxes: IndexedSeq[ErgoBox],
     params: ErgoLikeParameters,
     stateContext: ErgoLikeStateContext
   ): Unit = {
-    require(tx.dataInputs.isEmpty, s"data inputs are not supported yet")
     val verifier = ErgoInterpreter(params)
     boxesToSpend.zipWithIndex.foreach {
       case (box, idx) =>
@@ -39,7 +39,7 @@ object TransactionVerifier {
           ErgoInterpreter.avlTreeFromDigest(stateContext.previousStateDigest),
           stateContext.sigmaLastHeaders,
           stateContext.sigmaPreHeader,
-          IndexedSeq(),
+          dataInputBoxes,
           boxesToSpend,
           tx,
           idx,
