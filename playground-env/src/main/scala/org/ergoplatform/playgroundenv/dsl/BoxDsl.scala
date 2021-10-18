@@ -32,6 +32,13 @@ trait BoxDsl extends TypesDsl {
   val R8 = ErgoBox.R8
   val R9 = ErgoBox.R9
 
+  private var currentHeight: Int = 0
+
+  def setCurrentHeight(blockchainSim: BlockchainSimulation, height: Int): Unit = {
+    blockchainSim.setHeight(height)
+    currentHeight = height
+  }
+
   def Box(value: Long, script: ErgoContract): ErgoBoxCandidate = {
     require(value > 0, s"box value shoulde be > 0, got $value")
     new ErgoBoxCandidate(value, script.ergoTree, 0)
@@ -42,7 +49,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       Array[(TokenId, Long)]((Digest32 @@ token.token.tokenId.toArray, token.tokenAmount)).toColl
     )
   }
@@ -68,7 +75,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       Array[(TokenId, Long)]().toColl,
       Map((register._1, liftVal(register._2)))
     )
@@ -83,7 +90,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       Array[(TokenId, Long)]().toColl,
       registers.mapValues(liftVal)
     )
@@ -99,7 +106,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       Array[(TokenId, Long)]((Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
       Map((register._1, liftVal(register._2)))
     )
@@ -115,7 +122,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       Array[(TokenId, Long)]((Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
       registers.mapValues(liftVal)
     )
@@ -130,7 +137,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       tokens.map(token => (Digest32 @@ token._1.tokenId.toArray, token._2)).toColl
     )
   }
@@ -145,7 +152,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       tokens.map(token => (Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
       Map((register._1, liftVal(register._2)))
     )
@@ -161,7 +168,7 @@ trait BoxDsl extends TypesDsl {
     new ErgoBoxCandidate(
       value,
       script.ergoTree,
-      0,
+      currentHeight,
       tokens.map(token => (Digest32 @@ token._1.tokenId.toArray, token._2)).toColl,
       registers.mapValues(liftVal)
     )

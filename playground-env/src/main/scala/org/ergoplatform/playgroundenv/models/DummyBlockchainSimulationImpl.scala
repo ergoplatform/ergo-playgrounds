@@ -88,7 +88,7 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
       ErgoBox(
         value          = toSpend,
         ergoTree       = contract(address.pubKey).ergoTree,
-        creationHeight = 0,
+        creationHeight = chainHeight,
         additionalTokens =
           tokensToSpend.map(ta => (Digest32 @@ ta.token.tokenId.toArray, ta.tokenAmount))
       )
