@@ -16,6 +16,8 @@ env:
 jobs:
   build:
     name: Test and publish a snapshot
+    env:
+      HAS_SECRETS: ${{ secrets.SONATYPE_PASSWORD != '' }}
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -52,6 +54,7 @@ jobs:
         run: sbt test 
 
       - name: Publish a snapshot ${{ github.ref }}
+        if: env.HAS_SECRETS == 'true'
         run: sbt publish
         env:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
