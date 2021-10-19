@@ -34,8 +34,7 @@ trait BoxDsl extends TypesDsl {
 
   private var currentHeight: Int = 0
 
-  def setCurrentHeight(blockchainSim: BlockchainSimulation, height: Int): Unit = {
-    blockchainSim.setHeight(height)
+  def setCurrentHeight(height: Int): Unit = {
     currentHeight = height
   }
 
