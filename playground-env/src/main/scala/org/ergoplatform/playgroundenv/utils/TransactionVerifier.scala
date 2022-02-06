@@ -17,7 +17,7 @@ import org.ergoplatform.ErgoBox
 
 object TransactionVerifier {
 
-  val MaxBlockCostDefault: Int = 1000000
+  val MaxBlockCostDefault: Int = 2000000
 
   val validationSettings =
     org.ergoplatform.validation.ValidationRules.currentSettings
