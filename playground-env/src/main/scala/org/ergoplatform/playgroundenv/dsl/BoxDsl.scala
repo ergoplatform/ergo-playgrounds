@@ -12,11 +12,11 @@ import sigmastate.Values.{
   EvaluatedValue,
   GroupElementConstant,
   IntConstant,
+  LongArrayConstant,
   LongConstant,
   ShortConstant,
   SigmaBoolean,
-  SigmaPropConstant,
-  LongArrayConstant
+  SigmaPropConstant
 }
 import sigmastate.eval.Extensions._
 import sigmastate.eval._
