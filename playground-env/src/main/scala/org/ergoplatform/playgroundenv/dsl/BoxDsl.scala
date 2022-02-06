@@ -12,6 +12,7 @@ import sigmastate.Values.{
   EvaluatedValue,
   GroupElementConstant,
   IntConstant,
+  LongArrayConstant,
   LongConstant,
   ShortConstant,
   SigmaBoolean,
@@ -63,6 +64,7 @@ trait BoxDsl extends TypesDsl {
     case ge: GroupElement => GroupElementConstant(ge)
     case sb: SigmaBoolean => SigmaPropConstant(sb)
     case sp: SigmaProp    => SigmaPropConstant(sp)
+    case la: Array[Long]  => LongArrayConstant(la)
   }
 
   def Box[T](

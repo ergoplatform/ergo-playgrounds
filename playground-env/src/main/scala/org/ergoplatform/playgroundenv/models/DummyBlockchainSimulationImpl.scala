@@ -70,7 +70,7 @@ case class DummyBlockchainSimulationImpl(scenarioName: String)
 
     override def outputCost: Int = 100
 
-    override def maxBlockCost: Long = 1000000
+    override def maxBlockCost: Long = 2000000
 
     override def softForkStartingHeight: Option[Int] = None
 
