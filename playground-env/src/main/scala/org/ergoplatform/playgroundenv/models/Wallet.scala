@@ -5,11 +5,11 @@ import sigmastate.basics.ProveDHTuple
 
 trait Wallet {
 
+  def withDHSecret(proveDHTuple: ProveDHTuple): Wallet
+
   def name: String
 
   def getAddress: Address
 
   def sign(tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction
-
-  def signWithDHTData(proveDHTuple: ProveDHTuple, tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction
 }

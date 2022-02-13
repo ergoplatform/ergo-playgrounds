@@ -19,28 +19,24 @@ class DummyWalletImpl(
     ExtendedSecretKey.deriveMasterKey(seed)
   }
 
+  private val dHTInputs : util.List[DiffieHellmanTupleProverInput] =
+    new util.ArrayList[DiffieHellmanTupleProverInput](0)
+
   override val getAddress: Address = Address(masterKey.publicKey.key)
 
+  override def withDHSecret(proveDHTuple: ProveDHTuple) : Wallet = {
+    dHTInputs.add(DiffieHellmanTupleProverInput(masterKey.key.w, proveDHTuple))
+    this
+  }
+
   override def sign(tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction = {
-    val dhtInputs      = new util.ArrayList[DiffieHellmanTupleProverInput](0)
-
-    signWithDHTInputs(dhtInputs, tx)
-  }
-
-  override def signWithDHTData(proveDHTuple: ProveDHTuple, tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction = {
-    val dhtInputs : util.List[DiffieHellmanTupleProverInput] = List(DiffieHellmanTupleProverInput(masterKey.key.w, proveDHTuple)).asJava
-
-    signWithDHTInputs(dhtInputs, tx)
-  }
-
-  private def signWithDHTInputs(dhtInputs: util.List[DiffieHellmanTupleProverInput], tx: UnsignedErgoLikeTransaction) : ErgoLikeTransaction = {
     println(s"......$name: Signing transaction ${tx.id}")
     import Iso._
     val dLogs =
       JListToIndexedSeq(identityIso[ExtendedSecretKey]).from(IndexedSeq(masterKey))
     val boxesToSpend   = tx.inputs.map(i => blockchain.getUnspentBox(i.boxId)).toIndexedSeq
     val dataInputBoxes = tx.dataInputs.map(i => blockchain.getBox(i.boxId)).toIndexedSeq
-    val prover         = new AppkitProvingInterpreter(dLogs, dhtInputs, blockchain.parameters)
+    val prover         = new AppkitProvingInterpreter(dLogs, dHTInputs, blockchain.parameters)
     prover.sign(tx, boxesToSpend, dataInputBoxes, blockchain.stateContext).get
   }
 }
