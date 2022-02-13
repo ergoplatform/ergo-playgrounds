@@ -1,6 +1,7 @@
 package org.ergoplatform.playgroundenv.models
 
 import org.ergoplatform.{ErgoLikeTransaction, UnsignedErgoLikeTransaction}
+import sigmastate.basics.ProveDHTuple
 
 trait Wallet {
 
@@ -10,4 +11,5 @@ trait Wallet {
 
   def sign(tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction
 
+  def signWithDHTData(proveDHTuple: ProveDHTuple, tx: UnsignedErgoLikeTransaction): ErgoLikeTransaction
 }
