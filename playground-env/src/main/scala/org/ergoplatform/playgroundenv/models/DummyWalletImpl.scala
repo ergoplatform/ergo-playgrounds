@@ -19,12 +19,12 @@ class DummyWalletImpl(
     ExtendedSecretKey.deriveMasterKey(seed)
   }
 
-  private val dHTInputs : util.List[DiffieHellmanTupleProverInput] =
+  private val dHTInputs: util.List[DiffieHellmanTupleProverInput] =
     new util.ArrayList[DiffieHellmanTupleProverInput](0)
 
   override val getAddress: Address = Address(masterKey.publicKey.key)
 
-  override def withDHSecret(proveDHTuple: ProveDHTuple) : Wallet = {
+  override def withDHSecret(proveDHTuple: ProveDHTuple): Wallet = {
     dHTInputs.add(DiffieHellmanTupleProverInput(masterKey.key.w, proveDHTuple))
     this
   }
