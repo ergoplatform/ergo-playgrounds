@@ -89,3 +89,4 @@ credentials in ThisBuild ++= (for {
   password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
 } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
 
+parallelExecution in ThisBuild := false
